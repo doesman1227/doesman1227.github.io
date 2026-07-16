@@ -3,84 +3,112 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Doesman ── つくったものの置き場</title>
-<meta name="description" content="Doesman が個人的に作った学習サイトのまとめ（ハブ）。量子力学ふしぎ図鑑、マインドフルネスを学びなおすノートなど。">
+<title>まとめノート ｜ m-note</title>
+<meta name="description" content="個人的につくっている学習ノートの入口。マインドフルネスと量子力学のまとめノートを公開しています。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Noto+Serif+JP:wght@600;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#1c2433; --muted:#5d6577; --paper:#f7f4ef; --paper-2:#efe9e0;
-    --line:#e1dacf; --white:#fff; --navy:#16243f; --accent:#e2703a;
-    --shadow:0 14px 40px -18px rgba(22,36,63,.28);
+    --bg:#ffffff; --ink:#141414; --muted:#8f8f8f; --faint:#b9b9b9;
+    --line:#e7e7e7; --hover:#f6f6f6;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0d0d0d; --ink:#f1f1f1; --muted:#8a8a8a; --faint:#5a5a5a;
+      --line:#232323; --hover:#161616; }
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:"Noto Sans JP",system-ui,sans-serif;color:var(--ink);
-    background:radial-gradient(900px 500px at 85% -10%,rgba(226,112,58,.10),transparent 60%),linear-gradient(180deg,#fbf9f5,var(--paper));
-    min-height:100vh;line-height:1.8;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column}
-  .wrap{max-width:940px;margin:0 auto;padding:0 24px;width:100%}
-  header.hero{padding:96px 0 40px;text-align:center}
-  .badge{display:inline-flex;align-items:center;gap:9px;background:var(--white);border:1px solid var(--line);
-    padding:7px 16px;border-radius:999px;font-size:.76rem;font-weight:700;color:var(--navy);letter-spacing:.08em;box-shadow:var(--shadow);margin-bottom:24px}
-  .badge i{width:7px;height:7px;border-radius:50%;background:var(--accent)}
-  h1{font-family:"Noto Serif JP",serif;font-weight:900;font-size:clamp(1.9rem,5vw,3rem);color:var(--navy);line-height:1.35}
-  h1 .hl{color:var(--accent)}
-  .sub{margin:20px auto 0;max-width:560px;color:var(--muted);font-size:1.04rem}
-  main{flex:1;padding:20px 0 40px}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
-  .card{position:relative;display:flex;flex-direction:column;background:var(--white);border:1px solid var(--line);
-    border-radius:20px;padding:32px;box-shadow:var(--shadow);text-decoration:none;color:inherit;overflow:hidden;
-    transition:transform .25s,box-shadow .25s,border-color .25s}
-  .card:hover{transform:translateY(-6px);box-shadow:0 26px 50px -22px rgba(22,36,63,.35);border-color:#f0a071}
-  .card .emoji{font-size:2.4rem;line-height:1;margin-bottom:16px}
-  .card .tag{font-size:.7rem;font-weight:700;letter-spacing:.1em;color:var(--accent);margin-bottom:8px}
-  .card h2{font-family:"Noto Serif JP",serif;font-size:1.35rem;color:var(--navy);margin-bottom:10px;line-height:1.4}
-  .card p{font-size:.92rem;color:var(--muted);flex:1}
-  .card .go{margin-top:18px;font-weight:700;font-size:.9rem;color:var(--navy);display:inline-flex;align-items:center;gap:6px}
-  .card .go .arr{color:var(--accent);transition:transform .2s}
-  .card:hover .go .arr{transform:translateX(4px)}
-  .card::after{content:"";position:absolute;inset:0;border-radius:20px;pointer-events:none}
-  footer{padding:30px 0 40px;text-align:center;color:var(--muted);font-size:.82rem}
-  footer a{color:var(--navy);text-decoration:none;font-weight:700}
-  footer .disc{max-width:640px;margin:14px auto 0;font-size:.74rem;color:#9a9285;line-height:1.7}
-  @media(max-width:680px){.grid{grid-template-columns:1fr}header.hero{padding:72px 0 30px}}
+  html{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  body{font-family:"Noto Sans JP",system-ui,sans-serif;background:var(--bg);color:var(--ink);
+    line-height:1.8;min-height:100vh;display:flex;flex-direction:column;letter-spacing:.01em}
+  .wrap{width:100%;max-width:680px;margin:0 auto;padding:0 28px}
+
+  /* top bar */
+  .topbar{padding:26px 0}
+  .mark{font-weight:700;font-size:.9rem;letter-spacing:.14em}
+  .mark .dot{color:var(--faint)}
+
+  /* intro */
+  main{flex:1;display:flex;flex-direction:column;justify-content:center;padding:40px 0}
+  .kicker{font-size:.7rem;font-weight:700;letter-spacing:.28em;color:var(--muted);margin-bottom:22px}
+  h1{font-family:"Noto Serif JP",serif;font-weight:600;font-size:clamp(1.8rem,5.4vw,2.7rem);
+    line-height:1.5;letter-spacing:.02em}
+  .lead{margin-top:22px;color:var(--muted);font-size:1rem;font-weight:400;max-width:34em}
+
+  /* list */
+  .list{margin-top:56px;border-top:1px solid var(--line)}
+  .row{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:22px;
+    padding:26px 8px;border-bottom:1px solid var(--line);text-decoration:none;color:inherit;
+    transition:background .25s,padding .25s}
+  .row:hover{background:var(--hover);padding-left:16px;padding-right:16px}
+  .idx{font-family:"Noto Serif JP",serif;font-weight:500;font-size:1rem;color:var(--faint);
+    letter-spacing:.05em}
+  .cat{font-size:.66rem;font-weight:700;letter-spacing:.22em;color:var(--muted);display:block;margin-bottom:7px}
+  .ttl{font-family:"Noto Serif JP",serif;font-weight:600;font-size:1.35rem;color:var(--ink);line-height:1.3}
+  .desc{display:block;margin-top:8px;font-size:.86rem;color:var(--muted);font-weight:400}
+  .arrow{font-size:1.05rem;color:var(--faint);transition:transform .25s,color .25s}
+  .row:hover .arrow{transform:translateX(5px);color:var(--ink)}
+
+  /* footer */
+  footer{padding:44px 0 40px;color:var(--muted)}
+  .foot-line{display:flex;justify-content:space-between;align-items:center;gap:16px;
+    font-size:.8rem;border-top:1px solid var(--line);padding-top:22px;flex-wrap:wrap}
+  .foot-line a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line);padding-bottom:1px}
+  .foot-line a:hover{border-color:var(--ink)}
+  .disc{margin-top:16px;font-size:.72rem;color:var(--faint);line-height:1.7;max-width:46em}
+
+  @media(max-width:520px){
+    .row{grid-template-columns:auto 1fr;gap:16px}
+    .arrow{display:none}
+    main{padding:20px 0}
+    .list{margin-top:40px}
+  }
 </style>
 </head>
 <body>
-<header class="hero">
-  <div class="wrap">
-    <span class="badge"><i></i>DOESMAN'S PAGES</span>
-    <h1>つくったものの、<span class="hl">置き場</span>。</h1>
-    <p class="sub">個人的に作っている学習サイトのまとめです。気になるものからどうぞ。</p>
-  </div>
-</header>
+
+<div class="topbar">
+  <div class="wrap"><span class="mark">m<span class="dot">-</span>note</span></div>
+</div>
 
 <main>
   <div class="wrap">
-    <div class="grid">
-      <a class="card" href="mindfulness/">
-        <div class="emoji">🧘</div>
-        <div class="tag">MINDFULNESS ／ まとめノート</div>
-        <h2>マインドフルネス</h2>
-        <p>瞑想・ACT・セルフアクセプタンスを、タイミング別の実践方法とコラムで整理した学習ノート。</p>
-        <span class="go">サイトを見る <span class="arr">→</span></span>
+    <p class="kicker">PERSONAL NOTES</p>
+    <h1>気になったことを、<br>自分の言葉でまとめる。</h1>
+    <p class="lead">個人的につくっている学習ノートの入口です。気になるほうから、どうぞ。</p>
+
+    <nav class="list">
+      <a class="row" href="mindfulness/">
+        <span class="idx">01</span>
+        <span class="body">
+          <span class="cat">MINDFULNESS</span>
+          <span class="ttl">マインドフルネス</span>
+          <span class="desc">瞑想・ACT・セルフアクセプタンスを、実践方法とコラムで整理したノート。</span>
+        </span>
+        <span class="arrow">→</span>
       </a>
-      <a class="card" href="quantum/">
-        <div class="emoji">⚛️</div>
-        <div class="tag">PHYSICS ／ まとめノート</div>
-        <h2>量子力学</h2>
-        <p>常識が通じない“ミクロの世界のルール”を、やさしく学べる図鑑サイト。</p>
-        <span class="go">サイトを見る <span class="arr">→</span></span>
+      <a class="row" href="quantum/">
+        <span class="idx">02</span>
+        <span class="body">
+          <span class="cat">PHYSICS</span>
+          <span class="ttl">量子力学</span>
+          <span class="desc">常識が通じない“ミクロの世界のルール”を、やさしく学べるノート。</span>
+        </span>
+        <span class="arrow">→</span>
       </a>
-    </div>
+    </nav>
   </div>
 </main>
 
 <footer>
   <div class="wrap">
-    <p>© 2026 Doesman ／ <a href="https://github.com/doesman1227" target="_blank" rel="noopener">GitHub</a></p>
-    <p class="disc">いずれのサイトも、専門家ではない個人が学習・情報提供を目的に作った個人的なまとめです。内容の正確性を保証するものではなく、専門的な判断は各分野の専門家にご相談ください。</p>
+    <div class="foot-line">
+      <span>© 2026 m-note</span>
+      <a href="https://github.com/doesman1227" target="_blank" rel="noopener">GitHub</a>
+    </div>
+    <p class="disc">いずれのサイトも、専門家ではない個人が学習・情報提供のために作った個人的なまとめです。内容の正確性を保証するものではありません。</p>
   </div>
 </footer>
+
 </body>
 </html>
