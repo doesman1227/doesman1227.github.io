@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doesman ── つくったものの置き場</title>
+<meta name="description" content="Doesman が個人的に作った学習サイトのまとめ（ハブ）。量子力学ふしぎ図鑑、マインドフルネスを学びなおすノートなど。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Noto+Serif+JP:wght@600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1c2433; --muted:#5d6577; --paper:#f7f4ef; --paper-2:#efe9e0;
+    --line:#e1dacf; --white:#fff; --navy:#16243f; --accent:#e2703a;
+    --shadow:0 14px 40px -18px rgba(22,36,63,.28);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Noto Sans JP",system-ui,sans-serif;color:var(--ink);
+    background:radial-gradient(900px 500px at 85% -10%,rgba(226,112,58,.10),transparent 60%),linear-gradient(180deg,#fbf9f5,var(--paper));
+    min-height:100vh;line-height:1.8;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column}
+  .wrap{max-width:940px;margin:0 auto;padding:0 24px;width:100%}
+  header.hero{padding:96px 0 40px;text-align:center}
+  .badge{display:inline-flex;align-items:center;gap:9px;background:var(--white);border:1px solid var(--line);
+    padding:7px 16px;border-radius:999px;font-size:.76rem;font-weight:700;color:var(--navy);letter-spacing:.08em;box-shadow:var(--shadow);margin-bottom:24px}
+  .badge i{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+  h1{font-family:"Noto Serif JP",serif;font-weight:900;font-size:clamp(1.9rem,5vw,3rem);color:var(--navy);line-height:1.35}
+  h1 .hl{color:var(--accent)}
+  .sub{margin:20px auto 0;max-width:560px;color:var(--muted);font-size:1.04rem}
+  main{flex:1;padding:20px 0 40px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  .card{position:relative;display:flex;flex-direction:column;background:var(--white);border:1px solid var(--line);
+    border-radius:20px;padding:32px;box-shadow:var(--shadow);text-decoration:none;color:inherit;overflow:hidden;
+    transition:transform .25s,box-shadow .25s,border-color .25s}
+  .card:hover{transform:translateY(-6px);box-shadow:0 26px 50px -22px rgba(22,36,63,.35);border-color:#f0a071}
+  .card .emoji{font-size:2.4rem;line-height:1;margin-bottom:16px}
+  .card .tag{font-size:.7rem;font-weight:700;letter-spacing:.1em;color:var(--accent);margin-bottom:8px}
+  .card h2{font-family:"Noto Serif JP",serif;font-size:1.35rem;color:var(--navy);margin-bottom:10px;line-height:1.4}
+  .card p{font-size:.92rem;color:var(--muted);flex:1}
+  .card .go{margin-top:18px;font-weight:700;font-size:.9rem;color:var(--navy);display:inline-flex;align-items:center;gap:6px}
+  .card .go .arr{color:var(--accent);transition:transform .2s}
+  .card:hover .go .arr{transform:translateX(4px)}
+  .card::after{content:"";position:absolute;inset:0;border-radius:20px;pointer-events:none}
+  footer{padding:30px 0 40px;text-align:center;color:var(--muted);font-size:.82rem}
+  footer a{color:var(--navy);text-decoration:none;font-weight:700}
+  footer .disc{max-width:640px;margin:14px auto 0;font-size:.74rem;color:#9a9285;line-height:1.7}
+  @media(max-width:680px){.grid{grid-template-columns:1fr}header.hero{padding:72px 0 30px}}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <span class="badge"><i></i>DOESMAN'S PAGES</span>
+    <h1>つくったものの、<span class="hl">置き場</span>。</h1>
+    <p class="sub">個人的に作っている学習サイトのまとめです。気になるものからどうぞ。</p>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div class="grid">
+      <a class="card" href="mindshift/">
+        <div class="emoji">🧘</div>
+        <div class="tag">MINDFULNESS</div>
+        <h2>MindShift<br>マインドフルネスを学びなおすノート</h2>
+        <p>瞑想・ACT・セルフアクセプタンスを、タイミング別の実践方法とコラムで整理した学習ノート。</p>
+        <span class="go">サイトを見る <span class="arr">→</span></span>
+      </a>
+      <a class="card" href="quantum-zukan/">
+        <div class="emoji">⚛️</div>
+        <div class="tag">PHYSICS</div>
+        <h2>量子力学ふしぎ図鑑</h2>
+        <p>常識が通じない“ミクロの世界のルール”を、やさしく学べる図鑑サイト。</p>
+        <span class="go">サイトを見る <span class="arr">→</span></span>
+      </a>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>© 2026 Doesman ／ <a href="https://github.com/doesman1227" target="_blank" rel="noopener">GitHub</a></p>
+    <p class="disc">いずれのサイトも、専門家ではない個人が学習・情報提供を目的に作った個人的なまとめです。内容の正確性を保証するものではなく、専門的な判断は各分野の専門家にご相談ください。</p>
+  </div>
+</footer>
+</body>
+</html>
