@@ -31,8 +31,9 @@
   /* intro */
   main{flex:1;display:flex;flex-direction:column;justify-content:center;padding:40px 0}
   .kicker{font-size:.7rem;font-weight:700;letter-spacing:.28em;color:var(--muted);margin-bottom:22px}
-  h1{font-family:"Noto Serif JP",serif;font-weight:600;font-size:clamp(1.8rem,5.4vw,2.7rem);
-    line-height:1.5;letter-spacing:.02em}
+  h1{font-family:"Noto Serif JP",serif;font-weight:600;font-size:clamp(1.55rem,6vw,2.7rem);
+    line-height:1.55;letter-spacing:.02em}
+  h1 .ph{display:inline-block}  /* 節ごとに折り返す（句の途中で切れないように） */
   .lead{margin-top:22px;color:var(--muted);font-size:1rem;font-weight:400;max-width:34em}
 
   /* list */
@@ -74,7 +75,7 @@
 <main>
   <div class="wrap">
     <p class="kicker">PERSONAL NOTES</p>
-    <h1>日々、心にとまったものを、<br>そっとノートに。</h1>
+    <h1><span class="ph">日々、心にとまったものを、</span><span class="ph">そっとノートに。</span></h1>
     <p class="lead">ふと気になったこと、興味を惹かれたこと。通りすぎていく毎日から拾い上げて、忘れてしまう前に、ノートとして書きとめています。</p>
 
     <nav class="list">
