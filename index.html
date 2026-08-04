@@ -12,10 +12,16 @@
   :root{
     --bg:#ffffff; --ink:#141414; --muted:#8f8f8f; --faint:#b9b9b9;
     --line:#e7e7e7; --hover:#f6f6f6;
+    --edge:#d8d8d8; --edge-hi:#8f8f8f; --node-home:#3b3b3b;
+    --c-mindfulness:#6f9a86; --c-quantum:#6d86b8; --c-management:#b08a5a;
+    --c-knowledge:#8d7fb0; --c-ai:#b0707f; --c-musings:#8b8f97;
   }
   @media (prefers-color-scheme: dark){
     :root{ --bg:#0d0d0d; --ink:#f1f1f1; --muted:#8a8a8a; --faint:#5a5a5a;
-      --line:#232323; --hover:#161616; }
+      --line:#232323; --hover:#161616;
+      --edge:#2c2c2c; --edge-hi:#767676; --node-home:#e8e8e8;
+      --c-mindfulness:#84b39c; --c-quantum:#8099cc; --c-management:#c69f6c;
+      --c-knowledge:#a294c6; --c-ai:#c58493; --c-musings:#9ba1ab; }
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
@@ -35,6 +41,30 @@
     line-height:1.55;letter-spacing:.02em}
   h1 .ph{display:inline-block}  /* 節ごとに折り返す（句の途中で切れないように） */
   .lead{margin-top:22px;color:var(--muted);font-size:1rem;font-weight:400;max-width:34em}
+
+  /* graph */
+  .graph{margin-top:48px}
+  .graph-head{display:flex;align-items:baseline;justify-content:space-between;gap:18px;flex-wrap:wrap;
+    padding-bottom:12px}
+  .graph-head .kicker{margin-bottom:0}
+  .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.66rem;color:var(--muted);letter-spacing:.06em}
+  .legend button{display:inline-flex;align-items:center;gap:6px;background:none;border:0;padding:2px 0;
+    font:inherit;color:inherit;cursor:pointer;letter-spacing:inherit;transition:color .2s,opacity .2s}
+  .legend button:hover{color:var(--ink)}
+  .legend button[aria-pressed="false"]{opacity:.38}
+  .legend .sw{width:7px;height:7px;border-radius:50%;background:currentColor;flex:none}
+  .stage{position:relative;border:1px solid var(--line);border-radius:2px;background:var(--bg);
+    overflow:hidden;touch-action:none}
+  .stage canvas{display:block;width:100%;height:380px;cursor:grab}
+  .stage canvas.grabbing{cursor:grabbing}
+  .stage canvas.pointing{cursor:pointer}
+  .hint{position:absolute;left:12px;bottom:10px;font-size:.68rem;color:var(--faint);
+    pointer-events:none;letter-spacing:.04em}
+  .reset{position:absolute;right:10px;top:10px;background:none;border:1px solid var(--line);
+    border-radius:2px;color:var(--muted);font:inherit;font-size:.68rem;letter-spacing:.08em;
+    padding:4px 9px;cursor:pointer;transition:color .2s,border-color .2s;opacity:0}
+  .stage:hover .reset,.reset:focus-visible{opacity:1}
+  .reset:hover{color:var(--ink);border-color:var(--ink)}
 
   /* list */
   .list{margin-top:56px;border-top:1px solid var(--line)}
@@ -63,6 +93,10 @@
     .arrow{display:none}
     main{padding:20px 0}
     .list{margin-top:40px}
+    .graph{margin-top:36px}
+    .stage canvas{height:300px}
+    .hint{display:none}
+    .reset{opacity:1}
   }
 </style>
 </head>
@@ -77,6 +111,19 @@
     <p class="kicker">PERSONAL NOTES</p>
     <h1><span class="ph">日々、心にとまったものを、</span><span class="ph">そっとノートに。</span></h1>
     <p class="lead">ふと気になったこと、興味を惹かれたこと。通りすぎていく毎日から拾い上げて、忘れてしまう前に、ノートとして書きとめています。</p>
+
+    <section class="graph" aria-label="サイト全体のつながり">
+      <div class="graph-head">
+        <p class="kicker">GRAPH VIEW</p>
+        <div class="legend" id="legend"></div>
+      </div>
+      <div class="stage">
+        <canvas id="gcv" role="img"
+          aria-label="ノート同士のつながりを表した図。同じ内容は下のリストから辿れます。"></canvas>
+        <button class="reset" id="greset" type="button">RESET</button>
+        <p class="hint">ドラッグで移動 ・ ⌘/Ctrl＋ホイールで拡大 ・ 点をクリックでページへ</p>
+      </div>
+    </section>
 
     <nav class="list">
       <a class="row" href="mindfulness/">
@@ -146,6 +193,303 @@
     <p class="disc">いずれのサイトも、専門家ではない個人が学習・情報提供のために作った個人的なまとめです。内容の正確性を保証するものではありません。</p>
   </div>
 </footer>
+
+<script type="application/json" id="graph-data">{"nodes":[{"id":"home","label":"m-note","group":"home","kind":"home","url":"/","weight":3,"deg":6},{"id":"mindfulness","label":"マインドフルネス","group":"mindfulness","kind":"section","url":"/mindfulness/","cat":"MINDFULNESS","weight":2,"deg":26},{"id":"mindfulness/column-acceptance","label":"自分を受け入れる4つのメタファー","group":"mindfulness","kind":"page","url":"/mindfulness/column-acceptance.html","weight":1,"deg":7},{"id":"mindfulness/column-act","label":"ACT","group":"mindfulness","kind":"page","url":"/mindfulness/column-act.html","weight":1,"deg":9},{"id":"mindfulness/column-buddha-anatta","label":"Vol.4 “考え＝自分”ではない","group":"mindfulness","kind":"page","url":"/mindfulness/column-buddha-anatta.html","weight":1,"deg":7},{"id":"mindfulness/column-buddha-roots","label":"Vol.1 マインドフルネスのルーツ","group":"mindfulness","kind":"page","url":"/mindfulness/column-buddha-roots.html","weight":1,"deg":5},{"id":"mindfulness/column-buddha-satipatthana","label":"Vol.2 ブッダの“4つの気づき”を実践に翻訳する","group":"mindfulness","kind":"page","url":"/mindfulness/column-buddha-satipatthana.html","weight":1,"deg":9},{"id":"mindfulness/column-buddha-suffering","label":"Vol.3 “苦しみ”の正体","group":"mindfulness","kind":"page","url":"/mindfulness/column-buddha-suffering.html","weight":1,"deg":7},{"id":"mindfulness/column-buddha","label":"ブッダの教え × マインドフルネス（シリーズ）","group":"mindfulness","kind":"page","url":"/mindfulness/column-buddha.html","weight":1,"deg":6},{"id":"mindfulness/column-research","label":"研究で報告されている効果","group":"mindfulness","kind":"page","url":"/mindfulness/column-research.html","weight":1,"deg":3},{"id":"mindfulness/column-self-awareness","label":"セルフアウェアネス（自己認識力）","group":"mindfulness","kind":"page","url":"/mindfulness/column-self-awareness.html","weight":1,"deg":4},{"id":"mindfulness/column-therapies","label":"マインドフルネスと心理療法・プログラム（SIY・ACT・DBT・CBT）","group":"mindfulness","kind":"page","url":"/mindfulness/column-therapies.html","weight":1,"deg":5},{"id":"mindfulness/column-troubleshooting","label":"瞑想中の「うまくいかない」対処法","group":"mindfulness","kind":"page","url":"/mindfulness/column-troubleshooting.html","weight":1,"deg":4},{"id":"mindfulness/column","label":"コラム一覧","group":"mindfulness","kind":"page","url":"/mindfulness/column.html","weight":1,"deg":12},{"id":"mindfulness/methods","label":"実践方法まとめ","group":"mindfulness","kind":"page","url":"/mindfulness/methods.html","weight":1,"deg":12},{"id":"mindfulness/practice-bodyscan","label":"ボディスキャン","group":"mindfulness","kind":"page","url":"/mindfulness/practice-bodyscan.html","weight":1,"deg":6},{"id":"mindfulness/practice-breath33","label":"3×3ブリージング","group":"mindfulness","kind":"page","url":"/mindfulness/practice-breath33.html","weight":1,"deg":5},{"id":"mindfulness/practice-breathing","label":"呼吸瞑想（基本ステップ）","group":"mindfulness","kind":"page","url":"/mindfulness/practice-breathing.html","weight":1,"deg":4},{"id":"mindfulness/practice-eating","label":"マインドフル・イーティング","group":"mindfulness","kind":"page","url":"/mindfulness/practice-eating.html","weight":1,"deg":4},{"id":"mindfulness/practice-listening","label":"マインドフル・リスニング","group":"mindfulness","kind":"page","url":"/mindfulness/practice-listening.html","weight":1,"deg":5},{"id":"mindfulness/practice-metaphor","label":"思考と距離をとるメタファー","group":"mindfulness","kind":"page","url":"/mindfulness/practice-metaphor.html","weight":1,"deg":6},{"id":"mindfulness/practice-rain","label":"RAINテクニック","group":"mindfulness","kind":"page","url":"/mindfulness/practice-rain.html","weight":1,"deg":8},{"id":"mindfulness/practice-senses","label":"五感瞑想（5-4-3-2-1）","group":"mindfulness","kind":"page","url":"/mindfulness/practice-senses.html","weight":1,"deg":8},{"id":"mindfulness/practice-square","label":"スクエアブレス（ボックスブリージング）","group":"mindfulness","kind":"page","url":"/mindfulness/practice-square.html","weight":1,"deg":4},{"id":"mindfulness/practice-stop","label":"STOPテクニック","group":"mindfulness","kind":"page","url":"/mindfulness/practice-stop.html","weight":1,"deg":6},{"id":"mindfulness/practice-walking","label":"歩行瞑想（マインドフル・ムーブメント）","group":"mindfulness","kind":"page","url":"/mindfulness/practice-walking.html","weight":1,"deg":6},{"id":"mindfulness/practice-writing","label":"ライティング・セラピー（W.R.I.T.E.）","group":"mindfulness","kind":"page","url":"/mindfulness/practice-writing.html","weight":1,"deg":5},{"id":"quantum","label":"量子力学","group":"quantum","kind":"section","url":"/quantum/","cat":"PHYSICS","weight":2,"deg":38},{"id":"quantum/apply","label":"量子って何の役に立つの？","group":"quantum","kind":"page","url":"/quantum/apply.html","weight":1,"deg":1},{"id":"quantum/calabiyau","label":"カラビ・ヤウ多様体","group":"quantum","kind":"page","url":"/quantum/calabiyau.html","weight":1,"deg":2},{"id":"quantum/collapse","label":"観測と収縮ゲーム（波束の収縮）","group":"quantum","kind":"page","url":"/quantum/collapse.html","weight":1,"deg":1},{"id":"quantum/compute","label":"量子コンピュータの仕組み","group":"quantum","kind":"page","url":"/quantum/compute.html","weight":1,"deg":2},{"id":"quantum/constants","label":"この宇宙の定数","group":"quantum","kind":"page","url":"/quantum/constants.html","weight":1,"deg":2},{"id":"quantum/darkmatter","label":"ダークマターの正体","group":"quantum","kind":"page","url":"/quantum/darkmatter.html","weight":1,"deg":2},{"id":"quantum/energy","label":"量子とエネルギー ゲーム","group":"quantum","kind":"page","url":"/quantum/energy.html","weight":1,"deg":1},{"id":"quantum/entropy","label":"量子力学とエントロピー","group":"quantum","kind":"page","url":"/quantum/entropy.html","weight":1,"deg":2},{"id":"quantum/existtime","label":"時間は存在するのか","group":"quantum","kind":"page","url":"/quantum/existtime.html","weight":1,"deg":1},{"id":"quantum/ftl","label":"量子もつれで“瞬間通信”できる？","group":"quantum","kind":"page","url":"/quantum/ftl.html","weight":1,"deg":1},{"id":"quantum/game","label":"量子もつれワーム","group":"quantum","kind":"page","url":"/quantum/game.html","weight":1,"deg":1},{"id":"quantum/gravity","label":"質量と重力について","group":"quantum","kind":"page","url":"/quantum/gravity.html","weight":1,"deg":1},{"id":"quantum/history","label":"量子力学の歴史","group":"quantum","kind":"page","url":"/quantum/history.html","weight":1,"deg":1},{"id":"quantum/holography","label":"ホログラフィック理論（AdS/CFT）","group":"quantum","kind":"page","url":"/quantum/holography.html","weight":1,"deg":3},{"id":"quantum/interact","label":"力の交換ゲーム（相互作用）","group":"quantum","kind":"page","url":"/quantum/interact.html","weight":1,"deg":1},{"id":"quantum/levels","label":"エネルギー準位ジャンプ","group":"quantum","kind":"page","url":"/quantum/levels.html","weight":1,"deg":1},{"id":"quantum/lqg","label":"ループ量子重力（LQG）","group":"quantum","kind":"page","url":"/quantum/lqg.html","weight":1,"deg":2},{"id":"quantum/mtheory","label":"M理論","group":"quantum","kind":"page","url":"/quantum/mtheory.html","weight":1,"deg":2},{"id":"quantum/multiverse","label":"量子力学とパラレルワールド","group":"quantum","kind":"page","url":"/quantum/multiverse.html","weight":1,"deg":6},{"id":"quantum/observer","label":"“観測”って人間が見ること？意識は関係ある？","group":"quantum","kind":"page","url":"/quantum/observer.html","weight":1,"deg":6},{"id":"quantum/play","label":"あそぶ：量子を体験するゲーム一覧","group":"quantum","kind":"page","url":"/quantum/play.html","weight":1,"deg":1},{"id":"quantum/qcnow","label":"量子コンピュータの現在地","group":"quantum","kind":"page","url":"/quantum/qcnow.html","weight":1,"deg":2},{"id":"quantum/qft","label":"場の量子論（QFT）","group":"quantum","kind":"page","url":"/quantum/qft.html","weight":1,"deg":2},{"id":"quantum/quest","label":"量子クエスト（量子力学の全体像）","group":"quantum","kind":"page","url":"/quantum/quest.html","weight":1,"deg":1},{"id":"quantum/reality","label":"素粒子は“ある”の？ ―実在をめぐる旅―","group":"quantum","kind":"page","url":"/quantum/reality.html","weight":1,"deg":7},{"id":"quantum/rules","label":"量子のふしぎルール","group":"quantum","kind":"page","url":"/quantum/rules.html","weight":1,"deg":1},{"id":"quantum/slit","label":"二重スリット実験ラボ","group":"quantum","kind":"page","url":"/quantum/slit.html","weight":1,"deg":1},{"id":"quantum/standard-model","label":"標準模型","group":"quantum","kind":"page","url":"/quantum/standard-model.html","weight":1,"deg":3},{"id":"quantum/superstring","label":"超弦理論","group":"quantum","kind":"page","url":"/quantum/superstring.html","weight":1,"deg":2},{"id":"quantum/symmetry","label":"宇宙はシンプルだった ―対称性の破れの物語―","group":"quantum","kind":"page","url":"/quantum/symmetry.html","weight":1,"deg":4},{"id":"quantum/theory","label":"理論ガイド：○○理論を“レベル”で整理","group":"quantum","kind":"page","url":"/quantum/theory.html","weight":1,"deg":2},{"id":"quantum/time","label":"時間の矢 ―なぜ時間はもどらないの？―","group":"quantum","kind":"page","url":"/quantum/time.html","weight":1,"deg":5},{"id":"quantum/tunnel","label":"トンネル・ダッシュ（トンネル効果）","group":"quantum","kind":"page","url":"/quantum/tunnel.html","weight":1,"deg":1},{"id":"quantum/tunneling","label":"壁のすり抜けについて（量子トンネル効果）","group":"quantum","kind":"page","url":"/quantum/tunneling.html","weight":1,"deg":1},{"id":"quantum/uncertainty","label":"不確定性ゲーム（虫かごチャレンジ）","group":"quantum","kind":"page","url":"/quantum/uncertainty.html","weight":1,"deg":1},{"id":"quantum/world","label":"量子が描く この世界のすがた","group":"quantum","kind":"page","url":"/quantum/world.html","weight":1,"deg":9},{"id":"quantum/zukan","label":"量子図鑑","group":"quantum","kind":"page","url":"/quantum/zukan.html","weight":1,"deg":1},{"id":"management","label":"経営戦略","group":"management","kind":"section","url":"/management/","cat":"BUSINESS","weight":2,"deg":20},{"id":"management/analysis","label":"環境分析 —— 事実から戦略を組み立てる","group":"management","kind":"page","url":"/management/analysis.html","weight":1,"deg":2},{"id":"management/business","label":"事業戦略とは —— その土俵でどう勝つかを決める","group":"management","kind":"page","url":"/management/business.html","weight":1,"deg":1},{"id":"management/corporate","label":"全社戦略とは —— どの土俵で戦うかを決める","group":"management","kind":"page","url":"/management/corporate.html","weight":1,"deg":1},{"id":"management/faq","label":"よくある質問(FAQ)","group":"management","kind":"page","url":"/management/faq.html","weight":1,"deg":2},{"id":"management/func-finance","label":"財務戦略 —— お金の流れに安全線を引く","group":"management","kind":"page","url":"/management/func-finance.html","weight":1,"deg":5},{"id":"management/func-hr","label":"人事戦略 —— 戦略を実行できる人を採り、育て、報いる","group":"management","kind":"page","url":"/management/func-hr.html","weight":1,"deg":6},{"id":"management/func-it","label":"IT・DX戦略 —— ボトルネックから始める","group":"management","kind":"page","url":"/management/func-it.html","weight":1,"deg":3},{"id":"management/func-marketing","label":"マーケティング戦略 —— 選ばれる理由を「伝わる」形にする","group":"management","kind":"page","url":"/management/func-marketing.html","weight":1,"deg":3},{"id":"management/func-production","label":"生産・オペレーション戦略 —— 品質・コスト・納期の優先順位を決める","group":"management","kind":"page","url":"/management/func-production.html","weight":1,"deg":4},{"id":"management/func-sales","label":"営業戦略 —— 誰に・どう売るかにメリハリをつける","group":"management","kind":"page","url":"/management/func-sales.html","weight":1,"deg":5},{"id":"management/functional","label":"機能別戦略とは —— 各部門が戦略をどう支えるか","group":"management","kind":"page","url":"/management/functional.html","weight":1,"deg":7},{"id":"management/roadmap","label":"戦略づくりロードマップ —— いつ・どの順番で・何を決めるか","group":"management","kind":"page","url":"/management/roadmap.html","weight":1,"deg":1},{"id":"management/step1","label":"ステップ1:現状を棚卸しする(3C・SWOT)","group":"management","kind":"page","url":"/management/step1.html","weight":1,"deg":1},{"id":"management/step2","label":"ステップ2:全社戦略 —— 土俵を決める","group":"management","kind":"page","url":"/management/step2.html","weight":1,"deg":1},{"id":"management/step3","label":"ステップ3:事業戦略 —— 勝ち方を決める","group":"management","kind":"page","url":"/management/step3.html","weight":1,"deg":1},{"id":"management/step4","label":"ステップ4:機能別戦略 —— 部門の施策に落とす","group":"management","kind":"page","url":"/management/step4.html","weight":1,"deg":1},{"id":"management/step5","label":"ステップ5:実行して、振り返る","group":"management","kind":"page","url":"/management/step5.html","weight":1,"deg":1},{"id":"management/thinking","label":"戦略思考のOS —— 同じ事実から違う打ち手を見つける","group":"management","kind":"page","url":"/management/thinking.html","weight":1,"deg":3},{"id":"management/tool","label":"経営戦略シート作成ツール","group":"management","kind":"page","url":"/management/tool.html","weight":1,"deg":1},{"id":"knowledge-management","label":"ナレッジマネジメント","group":"knowledge-management","kind":"section","url":"/knowledge-management/","cat":"KNOWLEDGE MANAGEMENT","weight":2,"deg":1},{"id":"ai-agent-driven-management","label":"AIエージェントドリブン経営","group":"ai-agent-driven-management","kind":"section","url":"/ai-agent-driven-management/","cat":"AI AGENT MANAGEMENT","weight":2,"deg":1},{"id":"musings","label":"日々のつぶやき","group":"musings","kind":"section","url":"/musings/","cat":"DAILY MUSINGS","weight":2,"deg":20},{"id":"musings/posts/p001","label":"AIの仕組みを、一気に地図にした日。 — 日々のつぶやき","group":"musings","kind":"page","url":"/musings/posts/p001.html","weight":1,"deg":2},{"id":"musings/posts/p002","label":"対称性は、なぜ存在するんだろう。 — 日々のつぶやき","group":"musings","kind":"page","url":"/musings/posts/p002.html","weight":1,"deg":3},{"id":"musings/posts/p003","label":"アイデア ＝ 問い × 静けさ。 — 日々のつぶやき","group":"musings","kind":"page","url":"/musings/posts/p003.html","weight":1,"deg":3},{"id":"musings/posts/p004","label":"AIは、驚くほど人間に似ている。 — 日々のつぶやき","group":"musings","kind":"page","url":"/musings/posts/p004.html","weight":1,"deg":3},{"id":"musings/posts/p005","label":"北極星を、言葉にした。 — 日々のつぶやき","group":"musings","kind":"page","url":"/musings/posts/p005.html","weight":1,"deg":3},{"id":"musings/posts/p006","label":"このサイトはブログじゃない。「思考のOS」だ。 — 日々のつぶやき","group":"musings","kind":"page","url":"/musings/posts/p006.html","weight":1,"deg":3},{"id":"musings/posts/p007","label":"『火の鳥』は、未来の技術ではなく未来の人間社会を描いていた。 — 日々のつぶやき","group":"musings","kind":"page","url":"/musings/posts/p007.html","weight":1,"deg":3},{"id":"musings/posts/p008","label":"「何のために学ぶのか」で分けたら、しっくりきた。 — 日々のつぶやき","group":"musings","kind":"page","url":"/musings/posts/p008.html","weight":1,"deg":3},{"id":"musings/posts/p009","label":"尊敬する人の助言は、実は自分の中にすでにある知恵だった。 — 日々のつぶやき","group":"musings","kind":"page","url":"/musings/posts/p009.html","weight":1,"deg":3},{"id":"musings/posts/p010","label":"間違いを気にせず、まず話す。 — 日々のつぶやき","group":"musings","kind":"page","url":"/musings/posts/p010.html","weight":1,"deg":3},{"id":"musings/posts/p011","label":"新しい人と話すことは、自分でも知らなかった価値観を掘り当てる作業だ。 — 日々のつぶやき","group":"musings","kind":"page","url":"/musings/posts/p011.html","weight":1,"deg":3},{"id":"musings/posts/p012","label":"AIエージェントによる学習する組織構想 — 日々のつぶやき","group":"musings","kind":"page","url":"/musings/posts/p012.html","weight":1,"deg":3},{"id":"musings/posts/p013","label":"デシジョンツリーと期待値による意思決定 — 日々のつぶやき","group":"musings","kind":"page","url":"/musings/posts/p013.html","weight":1,"deg":3},{"id":"musings/posts/p014","label":"起業の教科書 考察メモ — 日々のつぶやき","group":"musings","kind":"page","url":"/musings/posts/p014.html","weight":1,"deg":3},{"id":"musings/posts/p015","label":"組織OSと人間蒸留に関する考察 — 日々のつぶやき","group":"musings","kind":"page","url":"/musings/posts/p015.html","weight":1,"deg":3},{"id":"musings/posts/p016","label":"戦略コンサルに学ぶ思考OS — 日々のつぶやき","group":"musings","kind":"page","url":"/musings/posts/p016.html","weight":1,"deg":3},{"id":"musings/posts/p017","label":"戦略思考フレームワーク実践編 — 日々のつぶやき","group":"musings","kind":"page","url":"/musings/posts/p017.html","weight":1,"deg":3},{"id":"musings/posts/p018","label":"経営戦略の全体像 — 日々のつぶやき","group":"musings","kind":"page","url":"/musings/posts/p018.html","weight":1,"deg":3},{"id":"musings/posts/p019","label":"セミの一生と生存戦略 — 日々のつぶやき","group":"musings","kind":"page","url":"/musings/posts/p019.html","weight":1,"deg":2}],"links":[{"source":"home","target":"mindfulness","kind":"tree"},{"source":"mindfulness","target":"mindfulness/column-acceptance","kind":"tree"},{"source":"mindfulness/column-acceptance","target":"mindfulness/column","kind":"ref"},{"source":"mindfulness/column-acceptance","target":"mindfulness/practice-rain","kind":"ref"},{"source":"mindfulness/column-acceptance","target":"mindfulness/column-act","kind":"ref"},{"source":"mindfulness/column-acceptance","target":"mindfulness/column-troubleshooting","kind":"ref"},{"source":"mindfulness","target":"mindfulness/column-act","kind":"tree"},{"source":"mindfulness/column-act","target":"mindfulness/column","kind":"ref"},{"source":"mindfulness/column-act","target":"mindfulness/practice-rain","kind":"ref"},{"source":"mindfulness","target":"mindfulness/column-buddha-anatta","kind":"tree"},{"source":"mindfulness/column-buddha-anatta","target":"mindfulness/column","kind":"ref"},{"source":"mindfulness/column-buddha-anatta","target":"mindfulness/column-buddha","kind":"ref"},{"source":"mindfulness/column-buddha-anatta","target":"mindfulness/column-buddha-suffering","kind":"ref"},{"source":"mindfulness/column-buddha-anatta","target":"mindfulness/column-acceptance","kind":"ref"},{"source":"mindfulness/column-buddha-anatta","target":"mindfulness/practice-metaphor","kind":"ref"},{"source":"mindfulness/column-buddha-anatta","target":"mindfulness/column-act","kind":"ref"},{"source":"mindfulness","target":"mindfulness/column-buddha-roots","kind":"tree"},{"source":"mindfulness/column-buddha-roots","target":"mindfulness/column","kind":"ref"},{"source":"mindfulness/column-buddha-roots","target":"mindfulness/column-buddha","kind":"ref"},{"source":"mindfulness/column-buddha-roots","target":"mindfulness/column-buddha-satipatthana","kind":"ref"},{"source":"mindfulness/column-buddha-roots","target":"mindfulness/column-therapies","kind":"ref"},{"source":"mindfulness","target":"mindfulness/column-buddha-satipatthana","kind":"tree"},{"source":"mindfulness/column-buddha-satipatthana","target":"mindfulness/column","kind":"ref"},{"source":"mindfulness/column-buddha-satipatthana","target":"mindfulness/column-buddha","kind":"ref"},{"source":"mindfulness/column-buddha-satipatthana","target":"mindfulness/practice-bodyscan","kind":"ref"},{"source":"mindfulness/column-buddha-satipatthana","target":"mindfulness/practice-senses","kind":"ref"},{"source":"mindfulness/column-buddha-satipatthana","target":"mindfulness/practice-rain","kind":"ref"},{"source":"mindfulness/column-buddha-satipatthana","target":"mindfulness/practice-metaphor","kind":"ref"},{"source":"mindfulness/column-buddha-satipatthana","target":"mindfulness/column-buddha-suffering","kind":"ref"},{"source":"mindfulness","target":"mindfulness/column-buddha-suffering","kind":"tree"},{"source":"mindfulness/column-buddha-suffering","target":"mindfulness/column","kind":"ref"},{"source":"mindfulness/column-buddha-suffering","target":"mindfulness/column-buddha","kind":"ref"},{"source":"mindfulness/column-buddha-suffering","target":"mindfulness/column-act","kind":"ref"},{"source":"mindfulness/column-buddha-suffering","target":"mindfulness/practice-rain","kind":"ref"},{"source":"mindfulness","target":"mindfulness/column-buddha","kind":"tree"},{"source":"mindfulness/column-buddha","target":"mindfulness/column","kind":"ref"},{"source":"mindfulness","target":"mindfulness/column-research","kind":"tree"},{"source":"mindfulness/column-research","target":"mindfulness/column","kind":"ref"},{"source":"mindfulness/column-research","target":"mindfulness/column-act","kind":"ref"},{"source":"mindfulness","target":"mindfulness/column-self-awareness","kind":"tree"},{"source":"mindfulness/column-self-awareness","target":"mindfulness/column","kind":"ref"},{"source":"mindfulness/column-self-awareness","target":"mindfulness/column-therapies","kind":"ref"},{"source":"mindfulness/column-self-awareness","target":"mindfulness/practice-writing","kind":"ref"},{"source":"mindfulness","target":"mindfulness/column-therapies","kind":"tree"},{"source":"mindfulness/column-therapies","target":"mindfulness/column","kind":"ref"},{"source":"mindfulness/column-therapies","target":"mindfulness/column-act","kind":"ref"},{"source":"mindfulness","target":"mindfulness/column-troubleshooting","kind":"tree"},{"source":"mindfulness/column-troubleshooting","target":"mindfulness/column","kind":"ref"},{"source":"mindfulness/column-troubleshooting","target":"mindfulness/practice-walking","kind":"ref"},{"source":"mindfulness","target":"mindfulness/column","kind":"tree"},{"source":"mindfulness","target":"mindfulness/methods","kind":"tree"},{"source":"mindfulness/methods","target":"mindfulness/practice-bodyscan","kind":"ref"},{"source":"mindfulness/methods","target":"mindfulness/practice-writing","kind":"ref"},{"source":"mindfulness/methods","target":"mindfulness/practice-metaphor","kind":"ref"},{"source":"mindfulness/methods","target":"mindfulness/practice-walking","kind":"ref"},{"source":"mindfulness/methods","target":"mindfulness/practice-senses","kind":"ref"},{"source":"mindfulness/methods","target":"mindfulness/practice-eating","kind":"ref"},{"source":"mindfulness/methods","target":"mindfulness/practice-listening","kind":"ref"},{"source":"mindfulness/methods","target":"mindfulness/practice-stop","kind":"ref"},{"source":"mindfulness/methods","target":"mindfulness/practice-rain","kind":"ref"},{"source":"mindfulness/methods","target":"mindfulness/practice-breath33","kind":"ref"},{"source":"mindfulness/methods","target":"mindfulness/practice-square","kind":"ref"},{"source":"mindfulness","target":"mindfulness/practice-bodyscan","kind":"tree"},{"source":"mindfulness/practice-bodyscan","target":"mindfulness/practice-senses","kind":"ref"},{"source":"mindfulness/practice-bodyscan","target":"mindfulness/practice-walking","kind":"ref"},{"source":"mindfulness","target":"mindfulness/practice-breath33","kind":"tree"},{"source":"mindfulness/practice-breath33","target":"mindfulness/practice-square","kind":"ref"},{"source":"mindfulness/practice-breath33","target":"mindfulness/practice-stop","kind":"ref"},{"source":"mindfulness","target":"mindfulness/practice-breathing","kind":"tree"},{"source":"mindfulness/practice-breathing","target":"mindfulness/practice-bodyscan","kind":"ref"},{"source":"mindfulness/practice-breathing","target":"mindfulness/practice-walking","kind":"ref"},{"source":"mindfulness/practice-breathing","target":"mindfulness/practice-stop","kind":"ref"},{"source":"mindfulness","target":"mindfulness/practice-eating","kind":"tree"},{"source":"mindfulness/practice-eating","target":"mindfulness/practice-senses","kind":"ref"},{"source":"mindfulness/practice-eating","target":"mindfulness/practice-listening","kind":"ref"},{"source":"mindfulness","target":"mindfulness/practice-listening","kind":"tree"},{"source":"mindfulness/practice-listening","target":"mindfulness/practice-senses","kind":"ref"},{"source":"mindfulness","target":"mindfulness/practice-metaphor","kind":"tree"},{"source":"mindfulness/practice-metaphor","target":"mindfulness/column-acceptance","kind":"ref"},{"source":"mindfulness/practice-metaphor","target":"mindfulness/column-act","kind":"ref"},{"source":"mindfulness","target":"mindfulness/practice-rain","kind":"tree"},{"source":"mindfulness/practice-rain","target":"mindfulness/practice-stop","kind":"ref"},{"source":"mindfulness/practice-rain","target":"mindfulness/practice-breath33","kind":"ref"},{"source":"mindfulness","target":"mindfulness/practice-senses","kind":"tree"},{"source":"mindfulness/practice-senses","target":"mindfulness/practice-walking","kind":"ref"},{"source":"mindfulness","target":"mindfulness/practice-square","kind":"tree"},{"source":"mindfulness/practice-square","target":"mindfulness/practice-stop","kind":"ref"},{"source":"mindfulness","target":"mindfulness/practice-stop","kind":"tree"},{"source":"mindfulness","target":"mindfulness/practice-walking","kind":"tree"},{"source":"mindfulness","target":"mindfulness/practice-writing","kind":"tree"},{"source":"mindfulness/practice-writing","target":"mindfulness/practice-listening","kind":"ref"},{"source":"mindfulness/practice-writing","target":"mindfulness/practice-senses","kind":"ref"},{"source":"home","target":"quantum","kind":"tree"},{"source":"quantum","target":"quantum/apply","kind":"tree"},{"source":"quantum","target":"quantum/calabiyau","kind":"tree"},{"source":"quantum/calabiyau","target":"quantum/multiverse","kind":"ref"},{"source":"quantum","target":"quantum/collapse","kind":"tree"},{"source":"quantum","target":"quantum/compute","kind":"tree"},{"source":"quantum/compute","target":"quantum/observer","kind":"ref"},{"source":"quantum","target":"quantum/constants","kind":"tree"},{"source":"quantum/constants","target":"quantum/multiverse","kind":"ref"},{"source":"quantum","target":"quantum/darkmatter","kind":"tree"},{"source":"quantum/darkmatter","target":"quantum/world","kind":"ref"},{"source":"quantum","target":"quantum/energy","kind":"tree"},{"source":"quantum","target":"quantum/entropy","kind":"tree"},{"source":"quantum/entropy","target":"quantum/observer","kind":"ref"},{"source":"quantum","target":"quantum/existtime","kind":"tree"},{"source":"quantum","target":"quantum/ftl","kind":"tree"},{"source":"quantum","target":"quantum/game","kind":"tree"},{"source":"quantum","target":"quantum/gravity","kind":"tree"},{"source":"quantum","target":"quantum/history","kind":"tree"},{"source":"quantum","target":"quantum/holography","kind":"tree"},{"source":"quantum/holography","target":"quantum/reality","kind":"ref"},{"source":"quantum/holography","target":"quantum/world","kind":"ref"},{"source":"quantum","target":"quantum/interact","kind":"tree"},{"source":"quantum","target":"quantum/levels","kind":"tree"},{"source":"quantum","target":"quantum/lqg","kind":"tree"},{"source":"quantum/lqg","target":"quantum/time","kind":"ref"},{"source":"quantum","target":"quantum/mtheory","kind":"tree"},{"source":"quantum/mtheory","target":"quantum/multiverse","kind":"ref"},{"source":"quantum","target":"quantum/multiverse","kind":"tree"},{"source":"quantum/multiverse","target":"quantum/reality","kind":"ref"},{"source":"quantum/multiverse","target":"quantum/observer","kind":"ref"},{"source":"quantum","target":"quantum/observer","kind":"tree"},{"source":"quantum/observer","target":"quantum/reality","kind":"ref"},{"source":"quantum","target":"quantum/play","kind":"tree"},{"source":"quantum","target":"quantum/qcnow","kind":"tree"},{"source":"quantum/qcnow","target":"quantum/observer","kind":"ref"},{"source":"quantum","target":"quantum/qft","kind":"tree"},{"source":"quantum/qft","target":"quantum/reality","kind":"ref"},{"source":"quantum","target":"quantum/quest","kind":"tree"},{"source":"quantum","target":"quantum/reality","kind":"tree"},{"source":"quantum/reality","target":"quantum/world","kind":"ref"},{"source":"quantum/reality","target":"quantum/time","kind":"ref"},{"source":"quantum","target":"quantum/rules","kind":"tree"},{"source":"quantum","target":"quantum/slit","kind":"tree"},{"source":"quantum","target":"quantum/standard-model","kind":"tree"},{"source":"quantum/standard-model","target":"quantum/world","kind":"ref"},{"source":"quantum/standard-model","target":"quantum/symmetry","kind":"ref"},{"source":"quantum","target":"quantum/superstring","kind":"tree"},{"source":"quantum/superstring","target":"quantum/world","kind":"ref"},{"source":"quantum","target":"quantum/symmetry","kind":"tree"},{"source":"quantum/symmetry","target":"quantum/world","kind":"ref"},{"source":"quantum","target":"quantum/theory","kind":"tree"},{"source":"quantum/theory","target":"quantum/world","kind":"ref"},{"source":"quantum","target":"quantum/time","kind":"tree"},{"source":"quantum/time","target":"quantum/symmetry","kind":"ref"},{"source":"quantum/time","target":"quantum/world","kind":"ref"},{"source":"quantum","target":"quantum/tunnel","kind":"tree"},{"source":"quantum","target":"quantum/tunneling","kind":"tree"},{"source":"quantum","target":"quantum/uncertainty","kind":"tree"},{"source":"quantum","target":"quantum/world","kind":"tree"},{"source":"quantum","target":"quantum/zukan","kind":"tree"},{"source":"home","target":"management","kind":"tree"},{"source":"management","target":"management/analysis","kind":"tree"},{"source":"management/analysis","target":"management/func-hr","kind":"ref"},{"source":"management","target":"management/business","kind":"tree"},{"source":"management","target":"management/corporate","kind":"tree"},{"source":"management","target":"management/faq","kind":"tree"},{"source":"management/faq","target":"management/func-hr","kind":"ref"},{"source":"management","target":"management/func-finance","kind":"tree"},{"source":"management/func-finance","target":"management/func-hr","kind":"ref"},{"source":"management/func-finance","target":"management/func-it","kind":"ref"},{"source":"management","target":"management/func-hr","kind":"tree"},{"source":"management/func-hr","target":"management/func-production","kind":"ref"},{"source":"management","target":"management/func-it","kind":"tree"},{"source":"management","target":"management/func-marketing","kind":"tree"},{"source":"management/func-marketing","target":"management/func-sales","kind":"ref"},{"source":"management","target":"management/func-production","kind":"tree"},{"source":"management/func-production","target":"management/func-sales","kind":"ref"},{"source":"management","target":"management/func-sales","kind":"tree"},{"source":"management","target":"management/functional","kind":"tree"},{"source":"management/functional","target":"management/func-marketing","kind":"ref"},{"source":"management/functional","target":"management/func-sales","kind":"ref"},{"source":"management/functional","target":"management/func-production","kind":"ref"},{"source":"management/functional","target":"management/func-hr","kind":"ref"},{"source":"management/functional","target":"management/func-finance","kind":"ref"},{"source":"management/functional","target":"management/func-it","kind":"ref"},{"source":"management","target":"management/roadmap","kind":"tree"},{"source":"management","target":"management/step1","kind":"tree"},{"source":"management","target":"management/step2","kind":"tree"},{"source":"management","target":"management/step3","kind":"tree"},{"source":"management","target":"management/step4","kind":"tree"},{"source":"management","target":"management/step5","kind":"tree"},{"source":"management","target":"management/thinking","kind":"tree"},{"source":"management/thinking","target":"management/func-sales","kind":"ref"},{"source":"management/thinking","target":"management/func-finance","kind":"ref"},{"source":"management","target":"management/tool","kind":"tree"},{"source":"home","target":"knowledge-management","kind":"tree"},{"source":"home","target":"ai-agent-driven-management","kind":"tree"},{"source":"home","target":"musings","kind":"tree"},{"source":"musings","target":"musings/posts/p019","kind":"tree"},{"source":"musings","target":"musings/posts/p018","kind":"tree"},{"source":"musings","target":"musings/posts/p017","kind":"tree"},{"source":"musings","target":"musings/posts/p016","kind":"tree"},{"source":"musings","target":"musings/posts/p015","kind":"tree"},{"source":"musings","target":"musings/posts/p014","kind":"tree"},{"source":"musings","target":"musings/posts/p013","kind":"tree"},{"source":"musings","target":"musings/posts/p011","kind":"tree"},{"source":"musings","target":"musings/posts/p012","kind":"tree"},{"source":"musings","target":"musings/posts/p010","kind":"tree"},{"source":"musings","target":"musings/posts/p009","kind":"tree"},{"source":"musings","target":"musings/posts/p008","kind":"tree"},{"source":"musings","target":"musings/posts/p007","kind":"tree"},{"source":"musings","target":"musings/posts/p006","kind":"tree"},{"source":"musings","target":"musings/posts/p005","kind":"tree"},{"source":"musings","target":"musings/posts/p004","kind":"tree"},{"source":"musings","target":"musings/posts/p002","kind":"tree"},{"source":"musings","target":"musings/posts/p003","kind":"tree"},{"source":"musings","target":"musings/posts/p001","kind":"tree"},{"source":"musings/posts/p001","target":"musings/posts/p003","kind":"ref"},{"source":"musings/posts/p002","target":"musings/posts/p004","kind":"ref"},{"source":"musings/posts/p002","target":"musings/posts/p003","kind":"ref"},{"source":"musings/posts/p004","target":"musings/posts/p005","kind":"ref"},{"source":"musings/posts/p005","target":"musings/posts/p006","kind":"ref"},{"source":"musings/posts/p006","target":"musings/posts/p007","kind":"ref"},{"source":"musings/posts/p007","target":"musings/posts/p008","kind":"ref"},{"source":"musings/posts/p008","target":"musings/posts/p009","kind":"ref"},{"source":"musings/posts/p009","target":"musings/posts/p010","kind":"ref"},{"source":"musings/posts/p010","target":"musings/posts/p012","kind":"ref"},{"source":"musings/posts/p011","target":"musings/posts/p013","kind":"ref"},{"source":"musings/posts/p011","target":"musings/posts/p012","kind":"ref"},{"source":"musings/posts/p013","target":"musings/posts/p014","kind":"ref"},{"source":"musings/posts/p014","target":"musings/posts/p015","kind":"ref"},{"source":"musings/posts/p015","target":"musings/posts/p016","kind":"ref"},{"source":"musings/posts/p016","target":"musings/posts/p017","kind":"ref"},{"source":"musings/posts/p017","target":"musings/posts/p018","kind":"ref"},{"source":"musings/posts/p018","target":"musings/posts/p019","kind":"ref"}]}</script>
+<script>
+(function(){
+  var el = document.getElementById('graph-data');
+  var cv = document.getElementById('gcv');
+  if(!el || !cv || !cv.getContext) return;
+  var ctx = cv.getContext('2d');
+  var data = JSON.parse(el.textContent);
+
+  /* ---- グループ(セクション)の定義。順番は凡例の並び ---- */
+  var GROUPS = [
+    ['home','m-note','--node-home'],
+    ['mindfulness','マインドフルネス','--c-mindfulness'],
+    ['quantum','量子力学','--c-quantum'],
+    ['management','経営戦略','--c-management'],
+    ['knowledge-management','ナレッジ','--c-knowledge'],
+    ['ai-agent-driven-management','AI経営','--c-ai'],
+    ['musings','つぶやき','--c-musings']
+  ];
+  var theme = {};
+  function readTheme(){
+    var s = getComputedStyle(document.documentElement);
+    theme = { edge:s.getPropertyValue('--edge').trim(),
+              edgeHi:s.getPropertyValue('--edge-hi').trim(),
+              ink:s.getPropertyValue('--ink').trim(),
+              muted:s.getPropertyValue('--muted').trim(),
+              bg:s.getPropertyValue('--bg').trim() };
+    GROUPS.forEach(function(g){ theme[g[0]] = s.getPropertyValue(g[2]).trim(); });
+  }
+  readTheme();
+
+  /* ---- ノード / エッジの準備 ---- */
+  var nodes = data.nodes, byId = {}, hidden = {};
+  var order = {}; GROUPS.forEach(function(g,i){ order[g[0]] = i; });
+  nodes.forEach(function(n,i){
+    byId[n.id] = n;
+    var k = (order[n.group] || 0), a = k * 0.9 + i * 0.35;
+    var R = n.kind === 'home' ? 0 : 170;
+    n.x = Math.cos(a) * R + (n.kind === 'page' ? Math.cos(i) * 55 : 0);
+    n.y = Math.sin(a) * R + (n.kind === 'page' ? Math.sin(i * 1.7) * 55 : 0);
+    n.vx = n.vy = 0;
+    n.r = n.kind === 'home' ? 8 : n.kind === 'section' ? 6 : 3 + Math.min(n.deg, 8) * 0.32;
+    n.href = n.url.replace(/^\//, '');
+  });
+  var links = [];
+  var adj = {};
+  data.links.forEach(function(l){
+    var s = byId[l.source], t = byId[l.target];
+    if(!s || !t) return;
+    links.push({ s:s, t:t, tree:l.kind === 'tree' });
+    (adj[s.id] = adj[s.id] || []).push(t.id);
+    (adj[t.id] = adj[t.id] || []).push(s.id);
+  });
+
+  /* ---- 力学シミュレーション ---- */
+  var alpha = 1, hot = 0;
+  function visible(n){ return !hidden[n.group]; }
+  function pinned(n){ return n.fx != null; }  /* 0 を掴んだときに外れないよう == null で判定 */
+  function step(){
+    var i, j, a, b, dx, dy, d2, d, f, act = [];
+    for(i = 0; i < nodes.length; i++) if(visible(nodes[i])) act.push(nodes[i]);
+    for(i = 0; i < act.length; i++){
+      a = act[i];
+      for(j = i + 1; j < act.length; j++){
+        b = act[j];
+        dx = b.x - a.x; dy = b.y - a.y; d2 = dx * dx + dy * dy;
+        if(d2 > 90000 || d2 < 0.01) continue;
+        d = Math.sqrt(d2); f = 780 / d2 * alpha;
+        dx = dx / d * f; dy = dy / d * f;
+        if(!pinned(a)){ a.vx -= dx; a.vy -= dy; }
+        if(!pinned(b)){ b.vx += dx; b.vy += dy; }
+      }
+    }
+    for(i = 0; i < links.length; i++){
+      a = links[i].s; b = links[i].t;
+      if(!visible(a) || !visible(b)) continue;
+      var L = links[i].tree ? 56 : 92, k = links[i].tree ? 0.055 : 0.014;
+      dx = b.x - a.x; dy = b.y - a.y;
+      d = Math.sqrt(dx * dx + dy * dy) || 0.01;
+      f = (d - L) * k * alpha;
+      dx = dx / d * f; dy = dy / d * f;
+      if(!pinned(a)){ a.vx += dx; a.vy += dy; }
+      if(!pinned(b)){ b.vx -= dx; b.vy -= dy; }
+    }
+    for(i = 0; i < act.length; i++){
+      a = act[i];
+      if(pinned(a)){ a.x = a.fx; a.y = a.fy; a.vx = a.vy = 0; continue; }
+      a.vx -= a.x * 0.009 * alpha; a.vy -= a.y * 0.009 * alpha;
+      a.vx *= 0.86; a.vy *= 0.86;
+      a.x += a.vx; a.y += a.vy;
+    }
+    alpha += (0.02 - alpha) * 0.012;
+  }
+
+  /* ---- 表示変換(拡大・移動) ---- */
+  var W = 0, H = 0, dpr = 1, scale = 1, tx = 0, ty = 0, hover = null, dirty = true;
+  function resize(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = cv.clientWidth; H = cv.clientHeight;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    dirty = true;
+  }
+  function fit(){
+    var vis = nodes.filter(visible);
+    if(!vis.length) return;
+    var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    vis.forEach(function(n){
+      x0 = Math.min(x0, n.x); x1 = Math.max(x1, n.x);
+      y0 = Math.min(y0, n.y); y1 = Math.max(y1, n.y);
+    });
+    var pad = 34;
+    scale = Math.min((W - pad * 2) / Math.max(x1 - x0, 1), (H - pad * 2) / Math.max(y1 - y0, 1));
+    scale = Math.max(0.25, Math.min(scale, 1.8));
+    tx = W / 2 - (x0 + x1) / 2 * scale;
+    ty = H / 2 - (y0 + y1) / 2 * scale;
+    dirty = true;
+  }
+  function toWorld(px, py){ return { x:(px - tx) / scale, y:(py - ty) / scale }; }
+
+  /* ---- 描画 ---- */
+  function draw(){
+    ctx.clearRect(0, 0, W, H);
+    var near = {};
+    if(hover){ near[hover.id] = 1; (adj[hover.id] || []).forEach(function(id){ near[id] = 1; }); }
+
+    for(var i = 0; i < links.length; i++){
+      var a = links[i].s, b = links[i].t;
+      if(!visible(a) || !visible(b)) continue;
+      var on = hover && (near[a.id] && near[b.id]);
+      ctx.strokeStyle = on ? theme.edgeHi : theme.edge;
+      ctx.globalAlpha = hover ? (on ? 1 : 0.28) : (links[i].tree ? 0.85 : 0.55);
+      ctx.lineWidth = on ? 1.1 : 0.7;
+      ctx.beginPath();
+      ctx.moveTo(a.x * scale + tx, a.y * scale + ty);
+      ctx.lineTo(b.x * scale + tx, b.y * scale + ty);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    var labels = [];
+    for(i = 0; i < nodes.length; i++){
+      var n = nodes[i];
+      if(!visible(n)) continue;
+      var x = n.x * scale + tx, y = n.y * scale + ty;
+      var r = n.r * Math.max(0.75, Math.min(scale, 1.35));
+      var dim = hover && !near[n.id];
+      ctx.globalAlpha = dim ? 0.3 : 1;
+      ctx.beginPath(); ctx.arc(x, y, r, 0, 6.2832);
+      ctx.fillStyle = theme[n.group] || theme.muted;
+      ctx.fill();
+      if(n.kind !== 'page'){
+        ctx.lineWidth = 1.6; ctx.strokeStyle = theme.bg; ctx.stroke();
+      }
+      if(hover === n){
+        ctx.beginPath(); ctx.arc(x, y, r + 3.5, 0, 6.2832);
+        ctx.strokeStyle = theme.ink; ctx.lineWidth = 1; ctx.stroke();
+      }
+      if(n.kind !== 'page' || scale > 1.45 || (hover && near[n.id])){
+        labels.push([n, x, y + r + 11, dim]);
+      }
+    }
+    ctx.globalAlpha = 1;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    labels.forEach(function(L){
+      var n = L[0];
+      ctx.font = (n.kind === 'page' ? '10.5px' : '600 11.5px') + ' "Noto Sans JP",system-ui,sans-serif';
+      ctx.globalAlpha = L[3] ? 0.25 : 1;
+      var t = n.label.length > 18 ? n.label.slice(0, 17) + '…' : n.label;
+      ctx.lineWidth = 3.4; ctx.strokeStyle = theme.bg; ctx.lineJoin = 'round';
+      ctx.strokeText(t, L[1], L[2]);
+      ctx.fillStyle = n.kind === 'page' ? theme.muted : theme.ink;
+      ctx.fillText(t, L[1], L[2]);
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  /* ---- ループ ---- */
+  var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function frame(){
+    if(hot > 0 || alpha > 0.03){ step(); dirty = true; if(hot > 0) hot--; }
+    if(dirty){ draw(); dirty = false; }
+    requestAnimationFrame(frame);
+  }
+
+  /* ---- 操作 ---- */
+  var pointers = {}, dragNode = null, panning = false, moved = 0, last = null, pinch = 0;
+  function pos(e){ var b = cv.getBoundingClientRect(); return { x:e.clientX - b.left, y:e.clientY - b.top }; }
+  function pick(p){
+    var w = toWorld(p.x, p.y), best = null, bd = Infinity;
+    for(var i = 0; i < nodes.length; i++){
+      var n = nodes[i];
+      if(!visible(n)) continue;
+      var dx = n.x - w.x, dy = n.y - w.y, d = Math.sqrt(dx * dx + dy * dy);
+      if(d < (n.r + 7) / scale && d < bd){ bd = d; best = n; }
+    }
+    return best;
+  }
+  cv.addEventListener('pointerdown', function(e){
+    cv.setPointerCapture(e.pointerId);
+    pointers[e.pointerId] = pos(e);
+    if(Object.keys(pointers).length === 2){ dragNode = panning = false; pinch = pinchDist(); return; }
+    var p = pos(e); moved = 0; last = p;
+    dragNode = pick(p);
+    if(dragNode){ dragNode.fx = dragNode.x; dragNode.fy = dragNode.y; hot = 120; }
+    else { panning = true; cv.classList.add('grabbing'); }
+  });
+  function pinchDist(){
+    var k = Object.keys(pointers);
+    if(k.length < 2) return 0;
+    var a = pointers[k[0]], b = pointers[k[1]];
+    return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
+  }
+  cv.addEventListener('pointermove', function(e){
+    var p = pos(e);
+    if(pointers[e.pointerId]) pointers[e.pointerId] = p;
+    if(Object.keys(pointers).length === 2){
+      var d = pinchDist();
+      if(pinch && d){ zoomAt(W / 2, H / 2, d / pinch); pinch = d; }
+      return;
+    }
+    if(dragNode){
+      var w = toWorld(p.x, p.y);
+      dragNode.fx = w.x; dragNode.fy = w.y; hot = 120; moved += 5; dirty = true; return;
+    }
+    if(panning && last){
+      tx += p.x - last.x; ty += p.y - last.y;
+      moved += Math.abs(p.x - last.x) + Math.abs(p.y - last.y);
+      last = p; dirty = true; return;
+    }
+    var h = pick(p);
+    if(h !== hover){ hover = h; dirty = true; cv.classList.toggle('pointing', !!h); }
+  });
+  function release(e){
+    delete pointers[e.pointerId];
+    pinch = 0;
+    cv.classList.remove('grabbing');
+    if(dragNode){
+      if(moved < 6 && dragNode.href !== undefined){ location.href = dragNode.href || './'; }
+      dragNode.fx = dragNode.fy = null; dragNode = null; hot = 60;
+    }
+    panning = false; last = null;
+  }
+  cv.addEventListener('pointerup', release);
+  cv.addEventListener('pointercancel', release);
+  cv.addEventListener('pointerleave', function(){
+    if(hover){ hover = null; dirty = true; cv.classList.remove('pointing'); }
+  });
+  function zoomAt(px, py, k){
+    var s2 = Math.max(0.25, Math.min(scale * k, 4));
+    k = s2 / scale;
+    tx = px - (px - tx) * k; ty = py - (py - ty) * k;
+    scale = s2; dirty = true;
+  }
+  cv.addEventListener('wheel', function(e){
+    if(!(e.ctrlKey || e.metaKey || e.shiftKey)) return;  /* 通常のスクロールは妨げない */
+    e.preventDefault();
+    var p = pos(e);
+    zoomAt(p.x, p.y, Math.exp(-e.deltaY * 0.002));
+  }, { passive:false });
+  cv.addEventListener('dblclick', function(e){ var p = pos(e); zoomAt(p.x, p.y, 1.5); });
+
+  /* ---- 凡例(クリックで絞り込み) ---- */
+  var legend = document.getElementById('legend'), refit = 0;
+  GROUPS.slice(1).forEach(function(g){
+    var b = document.createElement('button');
+    b.type = 'button'; b.setAttribute('aria-pressed', 'true');
+    b.style.color = 'var(' + g[2] + ')';
+    b.innerHTML = '<span class="sw"></span>';
+    var s = document.createElement('span');
+    s.textContent = g[1]; s.style.color = 'var(--muted)';
+    b.appendChild(s);
+    b.addEventListener('click', function(){
+      hidden[g[0]] = !hidden[g[0]];
+      b.setAttribute('aria-pressed', hidden[g[0]] ? 'false' : 'true');
+      s.style.color = hidden[g[0]] ? 'var(--faint)' : 'var(--muted)';
+      alpha = 0.5; hot = 160; dirty = true;
+      clearTimeout(refit); refit = setTimeout(fit, 1000);
+    });
+    legend.appendChild(b);
+  });
+  document.getElementById('greset').addEventListener('click', function(){
+    nodes.forEach(function(n){ n.fx = n.fy = null; });
+    alpha = 0.8; hot = 200; fit();
+  });
+
+  /* ---- 起動 ---- */
+  window.addEventListener('resize', function(){ resize(); fit(); });
+  if(window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)')
+    .addEventListener('change', function(){ readTheme(); dirty = true; });
+  resize();
+  for(var w = 0; w < (still ? 400 : 150); w++) step();
+  fit();
+  if(still){ draw(); } else { alpha = 0.35; frame(); }
+})();
+</script>
 
 </body>
 </html>
