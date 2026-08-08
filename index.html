@@ -331,11 +331,13 @@
       });
     }
     recomputeShown();
-    alpha = 0.6; hot = 240; follow = 1; dirty = true;
+    alpha = 0.6; hot = 480; follow = 1; dirty = true;
     return true;
   }
 
   /* ---- 力学シミュレーション ---- */
+  var DT = 0.5;              /* 動きの速さ。1.0 が等倍、0.5 で半分 */
+  var DAMP = Math.pow(0.86, DT);
   var alpha = 1, hot = 0;
   function visible(n){ return shown[n.id] === 1; }
   function pinned(n){ return n.fx != null; }  /* 0 を掴んだときに外れないよう == null で判定 */
@@ -348,7 +350,7 @@
         b = act[j];
         dx = b.x - a.x; dy = b.y - a.y; d2 = dx * dx + dy * dy;
         if(d2 > 90000 || d2 < 0.01) continue;
-        d = Math.sqrt(d2); f = 780 * a.q * b.q / d2 * alpha;
+        d = Math.sqrt(d2); f = 780 * a.q * b.q / d2 * alpha * DT;
         dx = dx / d * f; dy = dy / d * f;
         if(!pinned(a)){ a.vx -= dx; a.vy -= dy; }
         if(!pinned(b)){ b.vx += dx; b.vy += dy; }
@@ -361,7 +363,7 @@
       var k = kd === 'tree' ? 0.055 : kd === 'post' ? 0.045 : 0.014;
       dx = b.x - a.x; dy = b.y - a.y;
       d = Math.sqrt(dx * dx + dy * dy) || 0.01;
-      f = (d - L) * k * alpha;
+      f = (d - L) * k * alpha * DT;
       dx = dx / d * f; dy = dy / d * f;
       if(!pinned(a)){ a.vx += dx; a.vy += dy; }
       if(!pinned(b)){ b.vx -= dx; b.vy -= dy; }
@@ -369,11 +371,11 @@
     for(i = 0; i < act.length; i++){
       a = act[i];
       if(pinned(a)){ a.x = a.fx; a.y = a.fy; a.vx = a.vy = 0; continue; }
-      a.vx -= a.x * 0.009 * alpha; a.vy -= a.y * 0.009 * alpha;
-      a.vx *= 0.86; a.vy *= 0.86;
-      a.x += a.vx; a.y += a.vy;
+      a.vx -= a.x * 0.009 * alpha * DT; a.vy -= a.y * 0.009 * alpha * DT;
+      a.vx *= DAMP; a.vy *= DAMP;
+      a.x += a.vx * DT; a.y += a.vy * DT;
     }
-    alpha += (0.02 - alpha) * 0.012;
+    alpha += (0.02 - alpha) * 0.012 * DT;
   }
 
   /* ---- 表示変換(拡大・移動) ---- */
@@ -412,7 +414,7 @@
     if(!t) return;
     var ds = t.s - scale, dx = t.x - tx, dy = t.y - ty;
     if(Math.abs(ds) < 0.001 && Math.abs(dx) < 0.3 && Math.abs(dy) < 0.3) return;  /* ほぼ収まっていれば描き直さない */
-    scale += ds * 0.13; tx += dx * 0.13; ty += dy * 0.13;
+    scale += ds * 0.065; tx += dx * 0.065; ty += dy * 0.065;
     dirty = true;
   }
   function toWorld(px, py){ return { x:(px - tx) / scale, y:(py - ty) / scale }; }
@@ -523,7 +525,7 @@
     for(var fi = 0; fi < nodes.length; fi++){
       var fn = nodes[fi];
       if(fn.appear !== undefined && fn.appear < 1){
-        fn.appear = Math.min(1, fn.appear + 0.07); dirty = true;
+        fn.appear = Math.min(1, fn.appear + 0.035); dirty = true;
       }
     }
     if(hot > 0 || alpha > 0.03){ step(); dirty = true; if(hot > 0) hot--; }
@@ -551,7 +553,7 @@
     if(Object.keys(pointers).length === 2){ dragNode = panning = false; pinch = pinchDist(); return; }
     var p = pos(e); moved = 0; last = p;
     dragNode = pick(p);
-    if(dragNode){ dragNode.fx = dragNode.x; dragNode.fy = dragNode.y; hot = 120; follow = 0; }
+    if(dragNode){ dragNode.fx = dragNode.x; dragNode.fy = dragNode.y; hot = 240; follow = 0; }
     else { panning = true; follow = 0; cv.classList.add('grabbing'); }
   });
   function pinchDist(){
@@ -570,7 +572,7 @@
     }
     if(dragNode){
       var w = toWorld(p.x, p.y);
-      dragNode.fx = w.x; dragNode.fy = w.y; hot = 120; moved += 5; dirty = true; return;
+      dragNode.fx = w.x; dragNode.fy = w.y; hot = 240; moved += 5; dirty = true; return;
     }
     if(panning && last){
       tx += p.x - last.x; ty += p.y - last.y;
@@ -591,7 +593,7 @@
       }
       if(dragNode.pin){ dragNode.fx = dragNode.fy = 0; }
       else { dragNode.fx = dragNode.fy = null; }
-      dragNode = null; hot = 60;
+      dragNode = null; hot = 120;
     }
     if(panning && moved < 6){ setSelected(null); }
     panning = false; last = null;
@@ -622,7 +624,7 @@
   document.getElementById('greset').addEventListener('click', function(){
     nodes.forEach(function(n){ if(!n.pin){ n.fx = n.fy = null; } });
     expanded = initialExpanded(); recomputeShown(); setSelected(null);
-    alpha = 0.8; hot = 200; follow = 1; fit();
+    alpha = 0.8; hot = 400; follow = 1; fit();
   });
 
   /* ---- 起動 ---- */
@@ -632,7 +634,7 @@
   recomputeShown();
   resize();
   if(still){                       /* 動きを減らす設定なら、落ち着いた状態で描く */
-    for(var w = 0; w < 500; w++) step();
+    for(var w = 0; w < 1000; w++) step();
     fit(); draw();
   } else {
     /* Obsidian と同じく、中心から広がっていくところから見せる */
@@ -641,7 +643,7 @@
       n.x *= 0.12; n.y *= 0.12; n.appear = 0;
     });
     fit(); scale = Math.min(scale, 1.2);
-    alpha = 1; hot = 300; follow = 1;
+    alpha = 1; hot = 600; follow = 1;
     frame();
   }
 })();
