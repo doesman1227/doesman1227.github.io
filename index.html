@@ -395,11 +395,18 @@
       if(!ks.length) return;
       var px = (pn.anim !== undefined && pn.anim < 1) ? pn.toX : pn.x;
       var py = (pn.anim !== undefined && pn.anim < 1) ? pn.toY : pn.y;
+      /* 扇の中心は「親がいまどちらへ伸びているか」。理想の角度ではなく実際の向きに合わせる */
+      var ang0 = baseAng, up = parentOf[id], g = up ? byId[up] : null;
+      if(g){
+        var gx = (g.anim !== undefined && g.anim < 1) ? g.toX : g.x;
+        var gy = (g.anim !== undefined && g.anim < 1) ? g.toY : g.y;
+        if(Math.abs(px - gx) + Math.abs(py - gy) > 1){ ang0 = Math.atan2(py - gy, px - gx); }
+      }
       var span = depth === 0 ? Math.PI * 2 : Math.PI * 1.15;   /* 外向きに扇を開く */
       ks.forEach(function(cid, i){
         var c = byId[cid];
-        var a = ks.length === 1 ? baseAng
-              : baseAng - span / 2 + span * (i + 0.5) / ks.length;
+        var a = ks.length === 1 ? ang0
+              : ang0 - span / 2 + span * (i + 0.5) / ks.length;
         if(!prev[cid]){
           var L = (restOf[cid] || 60) * SPREAD;
           c.ox = px; c.oy = py; c.ang = a; c.len = L;
@@ -410,7 +417,7 @@
           order++;
           flying = true;
         }
-        walk(cid, a, depth + 1);
+        walk(cid, ang0, depth + 1);
       });
     })('self', -Math.PI / 2, 0);
   }
@@ -434,7 +441,7 @@
       if(t >= 1){ n.fx = n.fy = null; n.vx = n.vy = 0; }
       else { n.fx = n.x; n.fy = n.y; }
     }
-    if(!moving){ flying = false; alpha = 0.3; hot = 900; }
+    if(!moving){ flying = false; alpha = 0.15; hot = 300; }   /* 着いたら軽く整えるだけ */
     dirty = true;
   }
 
@@ -453,7 +460,9 @@
     }
     recomputeShown();
     bloom(prev);
-    alpha = 0.25; hot = 900; follow = 1; dirty = true;
+    if(flying){ alpha = 0; hot = 0; }        /* 飛んでいるあいだは物理を止める */
+    else { alpha = 0.2; hot = 400; }
+    follow = 1; dirty = true;
     return true;
   }
 
@@ -707,7 +716,7 @@
     stepFlight();
     for(var fi = 0; fi < nodes.length; fi++){
       var fn = nodes[fi];
-      if(fn.appear !== undefined && fn.appear < 1){
+      if(fn.appear !== undefined && fn.appear < 1 && !(fn.anim !== undefined && fn.anim < 1)){
         fn.appear = Math.min(1, fn.appear + 0.02); dirty = true;
       }
     }
