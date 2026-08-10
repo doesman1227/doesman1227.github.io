@@ -110,6 +110,17 @@
   .close:focus-visible{outline:2px solid var(--ink); outline-offset:2px}
 
   .list{border-top:1px solid var(--line)}
+  /* ---- テーマごとの階層（グラフの5テーマに対応） ---- */
+  .grp{padding:6px 0 2px}
+  .grp + .grp{border-top:1px solid var(--line)}
+  .grp-h{display:flex; align-items:baseline; gap:11px; padding:18px 4px 12px}
+  .grp-ja{font-family:"Noto Serif JP",serif; font-weight:600; font-size:.92rem; color:var(--ink);
+    letter-spacing:.1em}
+  .grp-en{font-size:.56rem; font-weight:700; letter-spacing:.22em; color:var(--faint)}
+  .grp-n{margin-left:auto; font-size:.6rem; letter-spacing:.14em; color:var(--faint)}
+  .grp-body{border-left:1px solid var(--line); margin-left:5px; padding-left:15px}
+  .grp-body .row{border-bottom:0}
+  .grp-body .row + .row{border-top:1px solid var(--line)}
   .row{display:grid; grid-template-columns:auto 1fr; align-items:baseline; gap:16px;
     padding:20px 4px; border-bottom:1px solid var(--line); text-decoration:none; color:inherit;
     transition:background .22s, padding .22s}
@@ -173,62 +184,107 @@
     </div>
 
     <nav class="list">
-      <a class="row" href="mindfulness/">
-        <span class="idx">01</span>
-        <span class="body">
-          <span class="cat">MINDFULNESS</span>
-          <span class="ttl">マインドフルネス</span>
-          <span class="desc">瞑想・ACT・セルフアクセプタンスを、実践方法とコラムで整理したノート。</span>
-        </span>
-      </a>
-      <a class="row" href="quantum/">
-        <span class="idx">02</span>
-        <span class="body">
-          <span class="cat">PHYSICS</span>
-          <span class="ttl">量子力学</span>
-          <span class="desc">常識が通じない“ミクロの世界のルール”を、やさしく学べるノート。</span>
-        </span>
-      </a>
-      <a class="row" href="management/">
-        <span class="idx">03</span>
-        <span class="body">
-          <span class="cat">BUSINESS</span>
-          <span class="ttl">経営戦略</span>
-          <span class="desc">全社・事業・機能別の3階層で、中小企業の戦略づくりを学べるノート。</span>
-        </span>
-      </a>
-      <a class="row" href="knowledge-management/">
-        <span class="idx">04</span>
-        <span class="body">
-          <span class="cat">KNOWLEDGE MANAGEMENT</span>
-          <span class="ttl">ナレッジマネジメント</span>
-          <span class="desc">「問い × 静けさ」から生まれるアイデアを、AIとObsidianで蓄積し実行につなげる仕組みの設計ノート。</span>
-        </span>
-      </a>
-      <a class="row" href="ai-agent-driven-management/">
-        <span class="idx">05</span>
-        <span class="body">
-          <span class="cat">AI AGENT MANAGEMENT</span>
-          <span class="ttl">AIエージェントドリブン経営</span>
-          <span class="desc">人とAIが共創し、仮説検証を繰り返して自律的に業務課題を解決する次世代の経営モデルのまとめノート。</span>
-        </span>
-      </a>
-      <a class="row" href="musings/">
-        <span class="idx">06</span>
-        <span class="body">
-          <span class="cat">DAILY MUSINGS</span>
-          <span class="ttl">日々のつぶやき</span>
-          <span class="desc">日々ふと浮かんだ思考を、忘れる前に書きとめておく断片のログ。日付とともに残していく場所。</span>
-        </span>
-      </a>
-      <a class="row" href="developmental-disorder/">
-        <span class="idx">07</span>
-        <span class="body">
-          <span class="cat">NEURODIVERSITY</span>
-          <span class="ttl">発達障害</span>
-          <span class="desc">ASD・ADHD・SLDの特性と原因、当事者に起きていること、環境を整える対処法を脳の多様性の視点でまとめたノート。</span>
-        </span>
-      </a>
+      <section class="grp">
+        <h2 class="grp-h">
+          <span class="grp-ja">探る</span>
+          <span class="grp-en">EXPLORE</span>
+          <span class="grp-n">1</span>
+        </h2>
+        <div class="grp-body">
+          <a class="row" href="quantum/">
+            <span class="idx">01</span>
+            <span class="body">
+              <span class="cat">PHYSICS</span>
+              <span class="ttl">量子力学</span>
+              <span class="desc">常識が通じない“ミクロの世界のルール”を、やさしく学べるノート。</span>
+            </span>
+          </a>
+        </div>
+      </section>
+      <section class="grp">
+        <h2 class="grp-h">
+          <span class="grp-ja">学ぶ</span>
+          <span class="grp-en">LEARN</span>
+          <span class="grp-n">1</span>
+        </h2>
+        <div class="grp-body">
+          <a class="row" href="management/">
+            <span class="idx">02</span>
+            <span class="body">
+              <span class="cat">BUSINESS</span>
+              <span class="ttl">経営戦略</span>
+              <span class="desc">全社・事業・機能別の3階層で、中小企業の戦略づくりを学べるノート。</span>
+            </span>
+          </a>
+        </div>
+      </section>
+      <section class="grp">
+        <h2 class="grp-h">
+          <span class="grp-ja">考える</span>
+          <span class="grp-en">THINK</span>
+          <span class="grp-n">1</span>
+        </h2>
+        <div class="grp-body">
+          <a class="row" href="musings/">
+            <span class="idx">03</span>
+            <span class="body">
+              <span class="cat">DAILY MUSINGS</span>
+              <span class="ttl">日々のつぶやき</span>
+              <span class="desc">日々ふと浮かんだ思考を、忘れる前に書きとめておく断片のログ。日付とともに残していく場所。</span>
+            </span>
+          </a>
+        </div>
+      </section>
+      <section class="grp">
+        <h2 class="grp-h">
+          <span class="grp-ja">整える</span>
+          <span class="grp-en">TUNE</span>
+          <span class="grp-n">2</span>
+        </h2>
+        <div class="grp-body">
+          <a class="row" href="mindfulness/">
+            <span class="idx">04</span>
+            <span class="body">
+              <span class="cat">MINDFULNESS</span>
+              <span class="ttl">マインドフルネス</span>
+              <span class="desc">瞑想・ACT・セルフアクセプタンスを、実践方法とコラムで整理したノート。</span>
+            </span>
+          </a>
+          <a class="row" href="developmental-disorder/">
+            <span class="idx">05</span>
+            <span class="body">
+              <span class="cat">NEURODIVERSITY</span>
+              <span class="ttl">発達障害</span>
+              <span class="desc">ASD・ADHD・SLDの特性と原因、当事者に起きていること、環境を整える対処法を脳の多様性の視点でまとめたノート。</span>
+            </span>
+          </a>
+        </div>
+      </section>
+      <section class="grp">
+        <h2 class="grp-h">
+          <span class="grp-ja">つくる</span>
+          <span class="grp-en">MAKE</span>
+          <span class="grp-n">2</span>
+        </h2>
+        <div class="grp-body">
+          <a class="row" href="knowledge-management/">
+            <span class="idx">06</span>
+            <span class="body">
+              <span class="cat">KNOWLEDGE MANAGEMENT</span>
+              <span class="ttl">ナレッジマネジメント</span>
+              <span class="desc">「問い × 静けさ」から生まれるアイデアを、AIとObsidianで蓄積し実行につなげる仕組みの設計ノート。</span>
+            </span>
+          </a>
+          <a class="row" href="ai-agent-driven-management/">
+            <span class="idx">07</span>
+            <span class="body">
+              <span class="cat">AI AGENT MANAGEMENT</span>
+              <span class="ttl">AIエージェントドリブン経営</span>
+              <span class="desc">人とAIが共創し、仮説検証を繰り返して自律的に業務課題を解決する次世代の経営モデルのまとめノート。</span>
+            </span>
+          </a>
+        </div>
+      </section>
     </nav>
 
     <footer>
