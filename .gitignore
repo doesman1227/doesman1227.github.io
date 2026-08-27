@@ -5,3 +5,4 @@ regen.log
 launchd.out.log
 launchd.err.log
 GRAPH.md
+__pycache__/
