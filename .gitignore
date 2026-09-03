@@ -6,6 +6,6 @@ launchd.out.log
 launchd.err.log
 GRAPH.md
 __pycache__/
-BEST.md
+# BEST.md は 03_AsIs-ToBe-Gap.md へ統合(2026-09-03)
 # ASIS-TOBE.md は vault (00_Home/03_AsIs-ToBe-Gap.md) へ移した
 vault-state.json
