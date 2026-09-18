@@ -436,6 +436,7 @@
       var full = s.getPropertyValue(COLOR[m]).trim();
       theme[m] = full;
       theme['pale_' + m] = mix(full, theme.node, 0.42);  /* ふだんの淡い色(明るさは保つ) */
+      theme['mute_' + m] = mix(full, theme.node, 0.82);  /* いま見ていない範囲。ほぼ灰 */
       theme['edge_' + m] = mix(full, theme.edge, 0.45);  /* 線はもっと淡く */
     });
     dirty = true;
@@ -941,6 +942,16 @@
     if(n.appear !== undefined && n.appear < 1) r *= 0.5 + 0.5 * n.appear;
     return r;
   }
+  /* 彩度で「いま見ている範囲」を示す。
+     何も選んでいないとき(初期表示)は第1階層だけ色を残し、第2階層より下は灰へ。
+     サークルを選んだら、その配下だけ色を残して、外側を灰へ寄せる。
+     明るさ(alpha)ではなく彩度で分けるので、暗くならずに奥行きだけが出る。 */
+  function keepColor(n){
+    if(n.kind === 'self') return true;
+    if(selected) return !!branch[n.id];
+    return parentOf[n.id] === 'self';
+  }
+
   function draw(){
     breathing = false;
     ctx.clearRect(0, 0, W, H);
@@ -958,7 +969,8 @@
         ctx.strokeStyle = modeOf[deep.id] ? theme[modeOf[deep.id]] : theme.node;
         ctx.globalAlpha = Math.max(base, 0.75); ctx.lineWidth = 1;
       } else {
-        ctx.strokeStyle = modeOf[deep.id] ? theme['edge_' + modeOf[deep.id]]
+        ctx.strokeStyle = modeOf[deep.id] && keepColor(deep)
+                                          ? theme['edge_' + modeOf[deep.id]]
                                           : (on ? theme.edgeHi : theme.edge);
         ctx.globalAlpha = base * (hover ? (on ? 1.4 : 0.4) : (selected ? 0.55 : 1.2));
         ctx.lineWidth = on ? 1 : 0.7;
@@ -985,7 +997,9 @@
       var dim = hover && !near[n.id];
       var lit = !!branch[n.id];
       var md = modeOf[n.id];
-      var col = md ? (lit ? theme[md] : theme['pale_' + md]) : theme.node;
+      var col = !md ? theme.node
+              : keepColor(n) ? (lit || !selected ? theme[md] : theme['pale_' + md])
+              : theme['mute_' + md];
       var ap = n.appear === undefined ? 1 : n.appear;   /* 出てくるときのフェード */
       ctx.globalAlpha = (dim ? 0.3 : selected && !lit ? 0.55 : 1) * ap;
       ctx.beginPath(); ctx.arc(x, y, r, 0, 6.2832);
