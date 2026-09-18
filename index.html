@@ -457,7 +457,18 @@
     _:     { core:0.62, a:0.34, w:1,   dash:0 }   /* 状態が分からないもの */
   };
   var RAD = [135, 95, 58];
-  var nodes, byId, kids, parentOf, restOf, modeOf, links, adj;
+  var nodes, byId, kids, parentOf, restOf, modeOf, links, adj, depthOf = {};
+
+  /* 点ごとに決まったゆらぎ(0〜1)。id から作るので、同じ点は何度読み込んでも
+     同じ値になる。配置は有機的に散らばるが、リロードで形が変わることはない */
+  function jitter(id, salt){
+    var h = 2166136261;
+    for(var i = 0; i < id.length; i++){
+      h ^= id.charCodeAt(i); h = Math.imul(h, 16777619);
+    }
+    h = Math.imul(h ^ salt, 2654435761);
+    return ((h >>> 0) % 10000) / 10000;
+  }
 
   /* 既定の木から「どの点がどのモードの下にあるか」を一度だけ求めておく。
      軸ビューでも同じ色を使うので、切り替えても「何の話か」が色で残る */
@@ -477,9 +488,24 @@
     n.x = x; n.y = y;
     var ks = kids[id] || [], r = RAD[Math.min(depth, RAD.length - 1)];
     var sub = Math.min(spread / Math.max(ks.length, 1) * 1.4, 2.0);
+    /* 等角・等距離で撒くと、その対称がそのまま力学の安定解になってしまい、
+       きれいな環や十字に見える。扇は等分せず、点ごとの重みで割り当て、
+       距離にもゆらぎを足して崩しておく。 */
+    var ws = ks.map(function(c){ return 0.3 + jitter(c, 5) * 1.7; });
+    var tot = 0;
+    ws.forEach(function(w){ tot += w; });
+    var acc = 0;
     ks.forEach(function(c, i){
-      var a = ks.length === 1 ? ang : ang - spread / 2 + spread * (i + 0.5) / ks.length;
-      place(c, x + Math.cos(a) * r, y + Math.sin(a) * r, a, sub, depth + 1);
+      var a = ang;
+      if(ks.length > 1){
+        a = ang - spread / 2 + spread * (acc + ws[i] / 2) / tot;
+        a += (jitter(c, 1) - 0.5) * (spread / ks.length) * 0.5;
+      }
+      acc += ws[i];
+      var rr = r * (0.7 + jitter(c, 2) * 0.7);
+      var cn = byId[c];
+      if(cn && depth === 0){ cn.seedAng = a; }   /* 第1階層は向きを覚えておく */
+      place(c, x + Math.cos(a) * rr, y + Math.sin(a) * rr, a, sub, depth + 1);
     });
   }
 
@@ -528,6 +554,9 @@
       var v = Math.sqrt(Math.max(n.total || n.size || 1, 1));
       var t = (sp[1] - sp[0] < 1e-6) ? 0.5 : (v - sp[0]) / (sp[1] - sp[0]);
       n.r = rg[0] + (rg[1] - rg[0]) * t;
+      /* 大きい点ほど強く押しのけ、そのうえで点ごとに少しばらす。
+         同じ種類の兄弟でも間隔が揃わなくなる */
+      n.q *= (0.82 + 0.46 * t) * (0.88 + 0.24 * jitter(n.id, 4));
     });
 
     /* 色は既定の木から継ぐ。極だけは無色(mode:null)で、中心と同じ淡い光になる */
@@ -536,6 +565,14 @@
       var m = (n.mode === undefined) ? baseMode[n.id] : n.mode;
       if(m){ modeOf[n.id] = m; }
     });
+
+    /* 根からの深さ。第3階層より下はラベルを出さない(ホバー時だけ出す) */
+    depthOf = {};
+    (function deep(id, d){
+      if(depthOf[id] !== undefined) return;
+      depthOf[id] = d;
+      (kids[id] || []).forEach(function(c){ deep(c, d + 1); });
+    })('self', 0);
 
     place('self', 0, 0, -Math.PI / 2, Math.PI * 2, 0);
     byId['self'].pin = true;  /* 中心に固定 */
@@ -548,6 +585,10 @@
       var L = l.kind === 'ref' ? 92 : l.kind === 'post' ? 42
             : s.kind === 'self' ? 130 : s.kind === 'theme' ? 96
             : s.kind === 'subject' ? 88 : s.kind === 'section' ? 70 : 56;
+      /* 兄弟が同じ距離に揃うと環に見える。点ごとのゆらぎに加えて、
+         配下の大きい枝ほど外へ置き、同じ輪の上に並ばないようにする */
+      var w = Math.min(1, Math.sqrt(Math.max(t.count || 0, 0)) / 7);
+      L *= (0.8 + jitter(t.id, 3) * 0.4) * (0.88 + 0.44 * w);
       links.push({ s:s, t:t, kind:l.kind, tree:l.kind !== 'ref', L:L });
       if(l.kind !== 'ref'){ restOf[t.id] = L; }
       (adj[s.id] = adj[s.id] || []).push(t.id);
@@ -698,10 +739,16 @@
           if(path[c]){ prune(c); } else { collapse(c); }
         });
       })('self');
-      /* 開くのは一度に1階層だけ。中心も例外にしない。
-         以前は中心だけ2階層ぶん開いていて、押した瞬間に30〜40個が出ていた。
-         どの深さでも画面に出る点の数が同じになるほうが、読み進めやすい。 */
       expanded[n.id] = 1;
+      /* 中心は第1階層まで。そこから先は、押した枝を末端まで一度に開く。
+         第3階層より下はラベルを出さないので、点が増えても字は増えない。 */
+      if(n.id !== 'self'){
+        (function openAll(id){
+          (kids[id] || []).forEach(function(c){
+            if((kids[c] || []).length){ expanded[c] = 1; openAll(c); }
+          });
+        })(n.id);
+      }
     }
     recomputeShown();
     bloom(prev);
@@ -756,6 +803,22 @@
       a.vx *= damp; a.vy *= damp;
       a.x += a.vx * dt; a.y += a.vy * dt;
     }
+    /* 第1階層だけ、種を撒いた向きへごく弱く引き戻す。
+       兄弟の反発だけに任せると、枝の数ぶんの等角(4本なら十字)に均されてしまう。
+       角度だけを戻すので、距離は力学が決めたままになる。 */
+    for(i = 0; i < act.length; i++){
+      a = act[i];
+      if(pinned(a) || a.seedAng === undefined) continue;
+      d = Math.sqrt(a.x * a.x + a.y * a.y);
+      if(d < 8) continue;
+      var cur = Math.atan2(a.y, a.x);
+      var diff = Math.atan2(Math.sin(a.seedAng - cur), Math.cos(a.seedAng - cur));
+      var tw = diff * 0.05 * dt;
+      var tc = Math.cos(tw), ts = Math.sin(tw);
+      var nx = a.x * tc - a.y * ts;
+      a.y = a.x * ts + a.y * tc; a.x = nx;
+    }
+
     /* 恒星のまわりの惑星のように、子は親のまわりをゆっくり回る。
        外側ほど遅く(ケプラー風)、落ち着くにつれて回転も収まる。 */
     var spin = Math.min(1, hot / 1040);
@@ -974,7 +1037,11 @@
       }
       var leafNode = n.kind === 'page' || n.kind === 'post';
       var above = n.kind === 'self' || n.kind === 'theme';
-      if(n.label){ labels.push([n, x, above ? y - r - 10 : y + r + 11, dim, leafNode, ap]); }
+      /* 名前を出すのは第2階層まで。その下は無名の点にして、
+         カーソルを置いた(または選んだ)ときだけ名前が浮かぶ */
+      if(n.label && (depthOf[n.id] <= 2 || hover === n || selected === n.id)){
+        labels.push([n, x, above ? y - r - 10 : y + r + 11, dim, leafNode, ap]);
+      }
     }
     ctx.globalAlpha = 1;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
