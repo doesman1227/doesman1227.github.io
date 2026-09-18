@@ -457,7 +457,7 @@
     _:     { core:0.62, a:0.34, w:1,   dash:0 }   /* 状態が分からないもの */
   };
   var RAD = [135, 95, 58];
-  var nodes, byId, kids, parentOf, restOf, modeOf, links, adj, depthOf = {};
+  var nodes, byId, kids, parentOf, restOf, modeOf, links, adj;
 
   /* 点ごとに決まったゆらぎ(0〜1)。id から作るので、同じ点は何度読み込んでも
      同じ値になる。配置は有機的に散らばるが、リロードで形が変わることはない */
@@ -566,14 +566,6 @@
       if(m){ modeOf[n.id] = m; }
     });
 
-    /* 根からの深さ。第3階層より下はラベルを出さない(ホバー時だけ出す) */
-    depthOf = {};
-    (function deep(id, d){
-      if(depthOf[id] !== undefined) return;
-      depthOf[id] = d;
-      (kids[id] || []).forEach(function(c){ deep(c, d + 1); });
-    })('self', 0);
-
     place('self', 0, 0, -Math.PI / 2, Math.PI * 2, 0);
     byId['self'].pin = true;  /* 中心に固定 */
     byId['self'].fx = byId['self'].fy = 0;
@@ -605,11 +597,17 @@
   useView(VIEWS[0].nodes, VIEWS[0].links);
 
   /* ---- 展開状態(クリックで開いていく) ---- */
-  var shown = {}, expanded = {};
-  function initialExpanded(){   /* 最初は中心の点ひとつだけ。触ると開いていく */
-    return {};
+  /* expanded = その点の子を出すか / opened = その点の子の名前まで出すか。
+     初期は2階層ぶん出しておき、名前は第1階層だけ。第2階層は無名の点として
+     気配だけ見せる。点を押すと、その子の名前が出て、さらに1階層ぶん開く。 */
+  var shown = {}, expanded = {}, opened = {};
+  function initialExpanded(){
+    var e = { self:1 };
+    (kids['self'] || []).forEach(function(id){ e[id] = 1; });
+    return e;
   }
-  expanded = initialExpanded();
+  function initialOpened(){ return { self:1 }; }   /* 名前が出るのは第1階層まで */
+  expanded = initialExpanded(); opened = initialOpened();
   function recomputeShown(){
     shown = {};
     (function walk(id){
@@ -630,6 +628,7 @@
   }
   function collapse(id){
     delete expanded[id];
+    delete opened[id];
     (kids[id] || []).forEach(collapse);
   }
   /* 展開の動き。行き先を先に決めて、親から弧を描いて飛ばす。
@@ -728,7 +727,7 @@
     var ks = kids[n.id] || [];
     if(!ks.length) return false;          /* 子を持たない点はページへ飛ぶ */
     var prev = shown;
-    if(expanded[n.id]){ collapse(n.id); }
+    if(opened[n.id]){ collapse(n.id); }
     else {
       /* 開いている道すじは常に1本だけ。根からこの点までの道の外は、すべて閉じる。
          深く潜っても画面に出るのは「今いる道」とその子だけになる */
@@ -739,16 +738,10 @@
           if(path[c]){ prune(c); } else { collapse(c); }
         });
       })('self');
+      /* 押した点の子を出し、その名前も出す。第1階層はすでに子が出ているので、
+         押すと第2階層に名前が付く。第2階層を押すと第3階層が開いて名前も出る。 */
       expanded[n.id] = 1;
-      /* 中心は第1階層まで。そこから先は、押した枝を末端まで一度に開く。
-         第3階層より下はラベルを出さないので、点が増えても字は増えない。 */
-      if(n.id !== 'self'){
-        (function openAll(id){
-          (kids[id] || []).forEach(function(c){
-            if((kids[c] || []).length){ expanded[c] = 1; openAll(c); }
-          });
-        })(n.id);
-      }
+      opened[n.id] = 1;
     }
     recomputeShown();
     bloom(prev);
@@ -866,8 +859,9 @@
     var barH = bar ? bar.offsetHeight : 0;
     var padX = Math.max(56, W * 0.09), padT = Math.max(96, H * 0.14),
         padB = Math.max(112, barH + 56, H * 0.16);   /* +56 は点の下に出るラベルのぶん */
-    if(W < 720 && !document.body.classList.contains('touched')){
-      /* 幅がせまい間は見出しが横いっぱいに出るので、その下から描く */
+    if(!document.body.classList.contains('touched')){
+      /* 触る前は見出しが出ているので、その下から描く。
+         読み込み時点で2階層ぶん広がるので、幅が広くても重なってしまう */
       var he = document.getElementById('hero');
       if(he){ padT = Math.max(padT, he.getBoundingClientRect().bottom + 28); }
     }
@@ -1037,9 +1031,9 @@
       }
       var leafNode = n.kind === 'page' || n.kind === 'post';
       var above = n.kind === 'self' || n.kind === 'theme';
-      /* 名前を出すのは第2階層まで。その下は無名の点にして、
+      /* 名前を出すのは、親を押して開いた点だけ。その先は無名の点にして、
          カーソルを置いた(または選んだ)ときだけ名前が浮かぶ */
-      if(n.label && (depthOf[n.id] <= 2 || hover === n || selected === n.id)){
+      if(n.label && (opened[parentOf[n.id]] || hover === n || selected === n.id)){
         labels.push([n, x, above ? y - r - 10 : y + r + 11, dim, leafNode, ap]);
       }
     }
@@ -1248,7 +1242,8 @@
 
   document.getElementById('greset').addEventListener('click', function(){
     nodes.forEach(function(n){ if(!n.pin){ n.fx = n.fy = null; } });
-    expanded = initialExpanded(); recomputeShown(); setSelected(null);
+    expanded = initialExpanded(); opened = initialOpened();
+    recomputeShown(); setSelected(null);
     alpha = 0.8; hot = 1600; follow = 1; fit();
   });
 
@@ -1290,8 +1285,8 @@
       if(token !== viewSeq) return;      /* 吸い込み中にまた切り替えられたら捨てる */
       nextMotion();                      /* 扇の向きと渦の向きを変える */
       useView(VIEWS[i].nodes, VIEWS[i].links);
-      expanded = initialExpanded(); recomputeShown(); setSelected(null);
-      toggle(byId['self']);              /* その軸の姿をすぐ開いて見せる */
+      expanded = initialExpanded(); opened = initialOpened();
+    recomputeShown(); setSelected(null);
       alpha = 0.9; hot = 1800; follow = 1; fit();
       /* この時点では点がまだ中心に固まっているので、飛び終わってから測り直す。
          そのあいだに自分で動かした(follow が切れた)ときは、そのままにする */
