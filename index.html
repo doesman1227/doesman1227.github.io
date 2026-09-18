@@ -431,7 +431,13 @@
               edgeHi:s.getPropertyValue('--edge-hi').trim(),
               ink:s.getPropertyValue('--ink').trim(),
               muted:s.getPropertyValue('--muted').trim(),
+              faint:s.getPropertyValue('--faint').trim(),
               bg:s.getPropertyValue('--bg').trim() };
+    /* 文字は背景になじませる。白で置くと図から浮いて、字だけが前に出る。
+       階層が下がるほど背景へ寄せ、触れた字だけがはっきり立ち上がる */
+    theme.t1 = mix(theme.ink, theme.muted, 0.45);   /* 第1階層 */
+    theme.t2 = theme.muted;                         /* 主題 */
+    theme.t3 = mix(theme.muted, theme.faint, 0.5);  /* カテゴリ・末端 */
     MODES.forEach(function(m){
       var full = s.getPropertyValue(COLOR[m]).trim();
       theme[m] = full;
@@ -517,6 +523,10 @@
   /* ひとつのビュー(既定の木、または軸の木)を組み立てる。
      点そのものは全ビューで共有し、つなぎ方と大きさだけを組み直す */
   function useView(vNodes, vLinks){
+    /* 吸い込みの途中で呼ばれる。飛行中の印を先に落としておかないと、
+       このあと stepFlight が「もう着いた」と判断して、切り替え時に
+       与えたはずの整える力(alpha/hot)を上書きしてしまう */
+    flying = false;
     var all = {};
     vNodes.forEach(function(n){ all[n.id] = n; });
     kids = {}; parentOf = {};
@@ -648,17 +658,12 @@
     delete opened[id];
     (kids[id] || []).forEach(collapse);
   }
-  /* 展開の動き。行き先を先に決めて、親から弧を描いて飛ばす。
-     飛んでいるあいだは物理から外し、着いたら物理に引き渡す。 */
+  /* 吸い込みの弧の深さ。切り替えのたびに向きを変えて、同じ動きの繰り返しに
+     見えないようにする。点はもう最初から全部出ているので、
+     枝ごとに飛ばす「展開の動き」は無くなった。 */
   var flying = false;
-  /* 切り替えのたびに扇の向きと渦の向きを変える。
-     同じ動きを繰り返すと「作り直している」ように見えるので、毎回ちがう軌跡を描かせる。
-     黄金角(137.5°)ずつ回すと、何度切り替えても前と重ならない。 */
-  var bloomAng = -Math.PI / 2, bloomCurl = 0.16;   /* 弧の深さ。大きいと遠回りに見える */
-  function nextMotion(){
-    bloomAng += 2.39996;                 /* 黄金角 */
-    bloomCurl = -bloomCurl;              /* 渦の向きを反転 */
-  }
+  var bloomCurl = 0.16;
+  function nextMotion(){ bloomCurl = -bloomCurl; }
 
   /* 新しい木を開く前に、いま出ている点を中心へ吸い込んで消す。
      外側の点から先に発つので、外から内へ畳まれていくように見える。 */
@@ -681,40 +686,6 @@
     return 390;                          /* 吸い込みが終わるまでの目安(ms) */
   }
 
-  function bloom(prev){
-    var now = (window.performance && performance.now) ? performance.now() : Date.now();
-    var order = 0;
-    (function walk(id, baseAng, depth){
-      var pn = byId[id];
-      var ks = (kids[id] || []).filter(function(k){ return shown[k]; });
-      if(!ks.length) return;
-      var px = (pn.anim !== undefined && pn.anim < 1) ? pn.toX : pn.x;
-      var py = (pn.anim !== undefined && pn.anim < 1) ? pn.toY : pn.y;
-      /* 扇の軸は「中心から見て親がどちらにいるか」。親より内側へ子を置くと
-         あとで外へ回り込むことになり、余計な動きに見える。中心からの向きを
-         軸にして扇を 180°未満に収めれば、子は必ず外側に出る。 */
-      var ang0 = baseAng;
-      var pd = Math.sqrt(px * px + py * py);
-      if(pd > 1){ ang0 = Math.atan2(py, px); }
-      var span = depth === 0 ? Math.PI * 2 : Math.PI * 0.86;
-      ks.forEach(function(cid, i){
-        var c = byId[cid];
-        var a = ks.length === 1 ? ang0
-              : ang0 - span / 2 + span * (i + 0.5) / ks.length;
-        if(!prev[cid]){
-          var L = (restOf[cid] || 60) * SPREAD;
-          c.ox = px; c.oy = py; c.ang = a; c.len = L;
-          c.toX = px + Math.cos(a) * L; c.toY = py + Math.sin(a) * L;
-          c.x = px; c.y = py; c.vx = c.vy = 0;
-          c.fx = px; c.fy = py;                 /* 飛行中は物理を止める */
-          c.t0 = now + order * 26; c.dur = 900; c.anim = 0; c.appear = 0;
-          order++;
-          flying = true;
-        }
-        walk(cid, ang0, depth + 1);
-      });
-    })('self', bloomAng, 0);
-  }
   function stepFlight(){
     if(!flying) return;
     var now = (window.performance && performance.now) ? performance.now() : Date.now();
@@ -1098,12 +1069,13 @@
          セリフ＝見出し / サンセリフ＝中身 の使い分けはドロワーと揃えている。 */
       var SERIF = ' "Noto Serif JP",serif';
       var SANS = ' "Noto Sans JP",system-ui,sans-serif';
+      /* 太字をやめ、明朝は細めに。図のなかの文字は、線の太さが近いほど馴染む */
       ctx.font = L[4] ? (focus ? '11.5px' : '10.5px') + SANS
-        : n.kind === 'theme' ? '600 15px' + SERIF
-        : n.kind === 'self' ? '600 13px' + SERIF
-        : n.kind === 'subject' ? '600 13px' + SANS
-        : n.kind === 'section' ? '600 11px' + SANS
-        : '600 11.5px' + SANS;
+        : n.kind === 'theme' ? '500 15px' + SERIF
+        : n.kind === 'self' ? '500 13px' + SERIF
+        : n.kind === 'subject' ? '400 13px' + SANS
+        : n.kind === 'section' ? '400 11px' + SANS
+        : '400 11.5px' + SANS;
       ctx.globalAlpha = (focus ? 1 : L[3] ? 0.25 : selected && !branch[n.id] ? 0.6 : 1) * L[5];
       var src = focus ? (n.full || n.label) : n.label;
       var lim = focus ? 40 : L[4] ? 18 : 24;
@@ -1120,12 +1092,14 @@
         if(ok){ y = cy; break; }
       }
       boxes.push({ x:lx, y:y, w:w });
-      /* 前面に出すぶん、背景の縁取りを厚くして下の文字から浮かせる */
-      ctx.lineWidth = focus ? 4.6 : 3.4; ctx.strokeStyle = theme.bg; ctx.lineJoin = 'round';
+      /* 縁取りは薄く。厚く抜くと字のまわりだけ背景が抜けて、板が浮いて見える */
+      ctx.lineWidth = focus ? 3.4 : 2.4;
+      ctx.strokeStyle = rgba(theme.bg, focus ? 0.9 : 0.62); ctx.lineJoin = 'round';
       ctx.strokeText(t, lx, y);
       ctx.fillStyle = focus ? theme.ink
-        : (L[4] || n.kind === 'section' || n.kind === 'more') ? theme.muted
-        : theme.ink;
+        : (L[4] || n.kind === 'section' || n.kind === 'more') ? theme.t3
+        : n.kind === 'theme' ? theme.t1
+        : theme.t2;
       ctx.fillText(t, lx, y);
     }
     var front = [];
@@ -1328,7 +1302,12 @@
       nextMotion();                      /* 扇の向きと渦の向きを変える */
       useView(VIEWS[i].nodes, VIEWS[i].links);
       opened = initialOpened(); recomputeShown(); setSelected(null);
-      alpha = 0.9; hot = 1800; follow = 1; fit();
+      /* 読み込み時と同じく、落ち着き先の近くから広がるところを見せる */
+      nodes.forEach(function(n){
+        if(!shown[n.id] || n.pin) return;
+        n.x *= 0.45; n.y *= 0.45; n.appear = 0;
+      });
+      alpha = 1; hot = 2400; burst = BURST0; follow = 1; fit();
       /* この時点では点がまだ中心に固まっているので、飛び終わってから測り直す。
          そのあいだに自分で動かした(follow が切れた)ときは、そのままにする */
       [700, 1600].forEach(function(ms){
