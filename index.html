@@ -458,8 +458,12 @@
     _:     { core:0.62, a:0.34, w:1,   dash:0 }   /* 状態が分からないもの */
   };
   var RAD = [135, 95, 58];
+  /* 深さごとの目標半径。中心から外へ同心の輪に並べる。
+     これが無いと、子が中心側の空いた場所に入り込んで内向きに展開して見える。 */
+  var RING = [0, 130, 230, 315, 385, 440];
   var nodes, byId, kids, parentOf, restOf, modeOf, links, adj, labelRank = {};
-  var LABEL_TOP = 3;   /* 兄弟のうち、名前を出すのは配下の多い上位いくつか */
+  var LABEL_TOP = 3;   /* 兄弟が多いとき、名前を出すのは配下の多い上位いくつか */
+  var LABEL_ALL = 4;   /* 兄弟がこの数以下なら、絞らず全部出す */
 
   /* 点ごとに決まったゆらぎ(0〜1)。id から作るので、同じ点は何度読み込んでも
      同じ値になる。配置は有機的に散らばるが、リロードで形が変わることはない */
@@ -538,6 +542,7 @@
       n.fx = n.fy = null;
       n.pin = false;
       delete n.anim; delete n.appear; delete n.toX; delete n.toY; delete n.gather;
+      delete n.depth;
       n.q = n.kind === 'self' ? 3.2 : n.kind === 'theme' ? 2.4 : n.kind === 'subject' ? 2.2
           : n.kind === 'section' ? 1.6 : n.kind === 'group' ? 1.4 : n.kind === 'more' ? 1.2 : 1;
       n.href = n.url ? n.url.replace(/^\//, '') : null;  /* 自分・極はページを持たない */
@@ -570,6 +575,14 @@
 
     /* 兄弟を「配下のサークル数」で並べ、上位だけ名前を出す。
        残りはカーソルを置くか選んだときに出す。点が多い階層で字が混むのを防ぐ。 */
+    /* 根からの深さ。輪の半径と、名前を出すかの判定に使う */
+    (function deep(id, d, seen){
+      if(seen[id]) return;
+      seen[id] = 1;
+      if(byId[id]){ byId[id].depth = d; }
+      (kids[id] || []).forEach(function(c){ deep(c, d + 1, seen); });
+    })('self', 0, {});
+
     labelRank = {};
     Object.keys(kids).forEach(function(pid){
       kids[pid].slice().sort(function(a, b){
@@ -806,10 +819,21 @@
       if(!pinned(a)){ a.vx += dx; a.vy += dy; }
       if(!pinned(b)){ b.vx -= dx; b.vy -= dy; }
     }
+    /* 深さごとの輪へ、ゆるく引く。子が親より内側に回り込むのを防ぎ、
+       階層が同心に並ぶので、全体としても円に落ち着く。 */
+    for(i = 0; i < act.length; i++){
+      a = act[i];
+      if(pinned(a) || a.depth === undefined || a.depth === 0) continue;
+      d = Math.sqrt(a.x * a.x + a.y * a.y);
+      if(d < 1) continue;
+      f = (RING[Math.min(a.depth, RING.length - 1)] * SPREAD - d) * 0.013 * alpha * dt;
+      a.vx += a.x / d * f; a.vy += a.y / d * f;
+    }
+
     for(i = 0; i < act.length; i++){
       a = act[i];
       if(pinned(a)){ a.x = a.fx; a.y = a.fy; a.vx = a.vy = 0; continue; }
-      a.vx -= a.x * 0.015 * alpha * dt; a.vy -= a.y * 0.015 * alpha * dt;
+      a.vx -= a.x * 0.004 * alpha * dt; a.vy -= a.y * 0.004 * alpha * dt;
       a.vx *= damp; a.vy *= damp;
       a.x += a.vx * dt; a.y += a.vy * dt;
     }
@@ -964,17 +988,13 @@
     if(n.appear !== undefined && n.appear < 1) r *= 0.5 + 0.5 * n.appear;
     return r;
   }
-  /* 彩度で「いま見ている範囲」を示す。
-     何も選んでいないとき(初期表示)は第1階層だけ色を残し、第2階層より下は灰へ。
-     サークルを選んだら、その配下だけ色を残して、外側を灰へ寄せる。
-     明るさ(alpha)ではなく彩度で分けるので、暗くならずに奥行きだけが出る。 */
+  /* ふだんはモノクロ。色は「触れた点」と「選んだ枝」にだけ出す。
+     色そのものの意味は1つに決めてある —— その点がどの「しくみ」に属するか。
+       世界=青 / 社会=琥珀 / 人間=紫 / 意識=緑
+     3つのビューで同じ対応なので、ビューをまたいでも色の意味が変わらない。 */
   function keepColor(n){
-    if(n.kind === 'self') return true;
-    if(selected) return !!branch[n.id];
-    /* 色を残すのは第2階層まで。第1階層を無色(極)にしているビューがあり、
-       そこでは色は第2階層に乗っているので、そこまでは残さないと全部灰になる */
-    var p = parentOf[n.id];
-    return p === undefined || p === 'self' || parentOf[p] === 'self';
+    if(hover === n) return true;          /* カーソルを置いた点 */
+    return selected ? !!branch[n.id] : false;   /* 選んだ点とその配下 */
   }
 
   function draw(){
@@ -1022,9 +1042,7 @@
       var dim = hover && !near[n.id];
       var lit = !!branch[n.id];
       var md = modeOf[n.id];
-      var col = !md ? theme.node
-              : keepColor(n) ? (lit || !selected ? theme[md] : theme['pale_' + md])
-              : theme['mute_' + md];
+      var col = (md && keepColor(n)) ? theme[md] : theme.node;
       var ap = n.appear === undefined ? 1 : n.appear;   /* 出てくるときのフェード */
       ctx.globalAlpha = (dim ? 0.3 : selected && !lit ? 0.55 : 1) * ap;
       ctx.beginPath(); ctx.arc(x, y, r, 0, 6.2832);
@@ -1072,7 +1090,9 @@
       var above = n.kind === 'self' || n.kind === 'theme';
       /* 名前を出すのは、親を押して開いた点だけ。その先は無名の点にして、
          カーソルを置いた(または選んだ)ときだけ名前が浮かぶ */
-      if(n.label && ((opened[parentOf[n.id]] && (labelRank[n.id] || 0) < LABEL_TOP)
+      var sibs = (kids[parentOf[n.id]] || []).length;
+      if(n.label && ((opened[parentOf[n.id]]
+                      && (sibs <= LABEL_ALL || (labelRank[n.id] || 0) < LABEL_TOP))
                      || hover === n || selected === n.id)){
         labels.push([n, x, above ? y - r - 10 : y + r + 11, dim, leafNode, ap]);
       }
