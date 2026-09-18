@@ -492,7 +492,7 @@
     /* 等角・等距離で撒くと、その対称がそのまま力学の安定解になってしまい、
        きれいな環や十字に見える。扇は等分せず、点ごとの重みで割り当て、
        距離にもゆらぎを足して崩しておく。 */
-    var ws = ks.map(function(c){ return 0.3 + jitter(c, 5) * 1.7; });
+    var ws = ks.map(function(c){ return 0.62 + jitter(c, 5) * 0.76; });
     var tot = 0;
     ws.forEach(function(w){ tot += w; });
     var acc = 0;
@@ -500,10 +500,10 @@
       var a = ang;
       if(ks.length > 1){
         a = ang - spread / 2 + spread * (acc + ws[i] / 2) / tot;
-        a += (jitter(c, 1) - 0.5) * (spread / ks.length) * 0.5;
+        a += (jitter(c, 1) - 0.5) * (spread / ks.length) * 0.3;
       }
       acc += ws[i];
-      var rr = r * (0.7 + jitter(c, 2) * 0.7);
+      var rr = r * (0.86 + jitter(c, 2) * 0.3);
       var cn = byId[c];
       if(cn && depth === 0){ cn.seedAng = a; }   /* 第1階層は向きを覚えておく */
       place(c, x + Math.cos(a) * rr, y + Math.sin(a) * rr, a, sub, depth + 1);
@@ -557,7 +557,7 @@
       n.r = rg[0] + (rg[1] - rg[0]) * t;
       /* 大きい点ほど強く押しのけ、そのうえで点ごとに少しばらす。
          同じ種類の兄弟でも間隔が揃わなくなる */
-      n.q *= (0.82 + 0.46 * t) * (0.88 + 0.24 * jitter(n.id, 4));
+      n.q *= (0.9 + 0.26 * t) * (0.94 + 0.12 * jitter(n.id, 4));
     });
 
     /* 色は既定の木から継ぐ。極だけは無色(mode:null)で、中心と同じ淡い光になる */
@@ -581,7 +581,7 @@
       /* 兄弟が同じ距離に揃うと環に見える。点ごとのゆらぎに加えて、
          配下の大きい枝ほど外へ置き、同じ輪の上に並ばないようにする */
       var w = Math.min(1, Math.sqrt(Math.max(t.count || 0, 0)) / 7);
-      L *= (0.8 + jitter(t.id, 3) * 0.4) * (0.88 + 0.44 * w);
+      L *= (0.92 + jitter(t.id, 3) * 0.17) * (0.94 + 0.2 * w);
       links.push({ s:s, t:t, kind:l.kind, tree:l.kind !== 'ref', L:L });
       if(l.kind !== 'ref'){ restOf[t.id] = L; }
       (adj[s.id] = adj[s.id] || []).push(t.id);
@@ -793,29 +793,35 @@
     for(i = 0; i < act.length; i++){
       a = act[i];
       if(pinned(a)){ a.x = a.fx; a.y = a.fy; a.vx = a.vy = 0; continue; }
-      a.vx -= a.x * 0.009 * alpha * dt; a.vy -= a.y * 0.009 * alpha * dt;
+      a.vx -= a.x * 0.014 * alpha * dt; a.vy -= a.y * 0.014 * alpha * dt;
       a.vx *= damp; a.vy *= damp;
       a.x += a.vx * dt; a.y += a.vy * dt;
     }
+    /* 落ち着くにつれて動きを収める。下の2つの回り込みはこれに乗せる */
+    var spin = Math.min(1, hot / 1040);
+
     /* 第1階層だけ、種を撒いた向きへごく弱く引き戻す。
-       兄弟の反発だけに任せると、枝の数ぶんの等角(4本なら十字)に均されてしまう。
-       角度だけを戻すので、距離は力学が決めたままになる。 */
-    for(i = 0; i < act.length; i++){
-      a = act[i];
-      if(pinned(a) || a.seedAng === undefined) continue;
-      d = Math.sqrt(a.x * a.x + a.y * a.y);
-      if(d < 8) continue;
-      var cur = Math.atan2(a.y, a.x);
-      var diff = Math.atan2(Math.sin(a.seedAng - cur), Math.cos(a.seedAng - cur));
-      var tw = diff * 0.05 * dt;
-      var tc = Math.cos(tw), ts = Math.sin(tw);
-      var nx = a.x * tc - a.y * ts;
-      a.y = a.x * ts + a.y * tc; a.x = nx;
+       兄弟の反発だけに任せると、枝の数ぶんの等角(4本なら十字)に均される。
+       角度だけを戻すので距離は力学が決めたまま。落ち着いたら止まるよう
+       spin に乗せる(乗せないと下の回り込みと綱引きになって、いつまでも揺れる)。 */
+    if(spin > 0.01){
+      for(i = 0; i < act.length; i++){
+        a = act[i];
+        if(pinned(a) || a.seedAng === undefined) continue;
+        d = Math.sqrt(a.x * a.x + a.y * a.y);
+        if(d < 8) continue;
+        var cur = Math.atan2(a.y, a.x);
+        var diff = Math.atan2(Math.sin(a.seedAng - cur), Math.cos(a.seedAng - cur));
+        var tw = diff * 0.05 * dt * spin;
+        var tc = Math.cos(tw), ts = Math.sin(tw);
+        var nx = a.x * tc - a.y * ts;
+        a.y = a.x * ts + a.y * tc; a.x = nx;
+      }
     }
 
     /* 恒星のまわりの惑星のように、子は親のまわりをゆっくり回る。
-       外側ほど遅く(ケプラー風)、落ち着くにつれて回転も収まる。 */
-    var spin = Math.min(1, hot / 1040);
+       外側ほど遅く(ケプラー風)、落ち着くにつれて回転も収まる。
+       親に近い点だけが速く回って浮いて見えるので、速さに上限をつける。 */
     if(spin > 0.01){
       for(i = 0; i < act.length; i++){
         a = act[i];
@@ -827,7 +833,7 @@
         dx = a.x - b.x; dy = a.y - b.y;
         d = Math.sqrt(dx * dx + dy * dy);
         if(d < 8) continue;
-        var w = 0.30 / Math.sqrt(d) * dt * spin;
+        var w = Math.min(0.20 / Math.sqrt(d), 0.022) * dt * spin;
         var cs = Math.cos(w), sn = Math.sin(w);
         a.x = b.x + dx * cs - dy * sn;
         a.y = b.y + dx * sn + dy * cs;
@@ -949,7 +955,10 @@
   function keepColor(n){
     if(n.kind === 'self') return true;
     if(selected) return !!branch[n.id];
-    return parentOf[n.id] === 'self';
+    /* 色を残すのは第2階層まで。第1階層を無色(極)にしているビューがあり、
+       そこでは色は第2階層に乗っているので、そこまでは残さないと全部灰になる */
+    var p = parentOf[n.id];
+    return p === undefined || p === 'self' || parentOf[p] === 'self';
   }
 
   function draw(){
