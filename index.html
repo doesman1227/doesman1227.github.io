@@ -698,10 +698,10 @@
           if(path[c]){ prune(c); } else { collapse(c); }
         });
       })('self');
+      /* 開くのは一度に1階層だけ。中心も例外にしない。
+         以前は中心だけ2階層ぶん開いていて、押した瞬間に30〜40個が出ていた。
+         どの深さでも画面に出る点の数が同じになるほうが、読み進めやすい。 */
       expanded[n.id] = 1;
-      if(n.id === 'self'){                         /* 中心は3階層目まで一度に開く */
-        ks.forEach(function(id){ expanded[id] = 1; });
-      }
     }
     recomputeShown();
     bloom(prev);
@@ -989,9 +989,17 @@
     /* 触れている点・選んだ点は、切り詰めていない元のタイトルに戻して最後に前面へ描く */
     function drawLabel(L, focus){
       var n = L[0];
-      ctx.font = (L[4] ? (focus ? '11.5px' : '10.5px') : n.kind === 'self' ? '600 13px'
-        : n.kind === 'subject' ? '600 13px' : n.kind === 'section' ? '600 11px' : '600 11.5px')
-        + ' "Noto Sans JP",system-ui,sans-serif';
+      /* 階層で字を変える。第1階層(しくみ・時期)はセリフ体の大きめ、
+         下の階層ほど小さく淡く。点の数が同じでも字面で階層が読める。
+         セリフ＝見出し / サンセリフ＝中身 の使い分けはドロワーと揃えている。 */
+      var SERIF = ' "Noto Serif JP",serif';
+      var SANS = ' "Noto Sans JP",system-ui,sans-serif';
+      ctx.font = L[4] ? (focus ? '11.5px' : '10.5px') + SANS
+        : n.kind === 'theme' ? '600 15px' + SERIF
+        : n.kind === 'self' ? '600 13px' + SERIF
+        : n.kind === 'subject' ? '600 13px' + SANS
+        : n.kind === 'section' ? '600 11px' + SANS
+        : '600 11.5px' + SANS;
       ctx.globalAlpha = (focus ? 1 : L[3] ? 0.25 : selected && !branch[n.id] ? 0.6 : 1) * L[5];
       var src = focus ? (n.full || n.label) : n.label;
       var lim = focus ? 40 : L[4] ? 18 : 24;
@@ -1011,7 +1019,9 @@
       /* 前面に出すぶん、背景の縁取りを厚くして下の文字から浮かせる */
       ctx.lineWidth = focus ? 4.6 : 3.4; ctx.strokeStyle = theme.bg; ctx.lineJoin = 'round';
       ctx.strokeText(t, lx, y);
-      ctx.fillStyle = focus ? theme.ink : L[4] ? theme.muted : theme.ink;
+      ctx.fillStyle = focus ? theme.ink
+        : (L[4] || n.kind === 'section' || n.kind === 'more') ? theme.muted
+        : theme.ink;
       ctx.fillText(t, lx, y);
     }
     var front = [];
