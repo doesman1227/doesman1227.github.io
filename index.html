@@ -884,7 +884,7 @@
     }).sort(function(a, b){ return a - b; });
     var q = rs[Math.min(rs.length - 1, Math.floor(rs.length * 0.95))] || 1;
     /* 枝に寄るときは、まわりが少し見えているほうが位置を見失わない */
-    fitR = q * (zoom ? 1.45 : 0.86);
+    fitR = q * (zoom ? 1.45 : 1.075);
     fitCx = cx; fitCy = cy;
   }
   function fitTarget(){
@@ -1220,6 +1220,9 @@
 
   /* ---- 操作 ---- */
   var pointers = {}, dragNode = null, panning = false, moved = 0, last = null, pinch = 0;
+  /* これ以内の動きなら「押した」とみなす。狭いと、指やトラックパッドの
+     わずかなぶれでドラッグ扱いになり、押したのに反応しないことがある */
+  var TAP_SLOP = 14;
   function pos(e){ var b = cv.getBoundingClientRect(); return { x:e.clientX - b.left, y:e.clientY - b.top }; }
   function pick(p){
     var w = toWorld(p.x, p.y), best = null, bd = Infinity;
@@ -1257,7 +1260,7 @@
     }
     if(dragNode){
       var w = toWorld(p.x, p.y);
-      dragNode.fx = w.x; dragNode.fy = w.y; hot = 960; moved += 5; dirty = true; return;
+      dragNode.fx = w.x; dragNode.fy = w.y; hot = 960; moved += 4; dirty = true; return;
     }
     if(panning && last){
       tx += p.x - last.x; ty += p.y - last.y;
@@ -1272,7 +1275,7 @@
     pinch = 0;
     cv.classList.remove('grabbing');
     if(dragNode){
-      if(moved < 6){
+      if(moved < TAP_SLOP){
         /* 中心を選ぶと全部が枝になってしまうので、中心は選択扱いにしない */
         setSelected(dragNode.id === 'self' ? null : dragNode.id);
         if(!toggle(dragNode) && dragNode.href){ location.href = dragNode.href; }
@@ -1281,7 +1284,7 @@
       else { dragNode.fx = dragNode.fy = null; }
       dragNode = null; hot = 480;
     }
-    if(panning && moved < 6){ setSelected(null); }
+    if(panning && moved < TAP_SLOP){ setSelected(null); }
     panning = false; last = null;
   }
   cv.addEventListener('pointerup', release);
