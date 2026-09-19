@@ -651,8 +651,10 @@
   function setSelected(id){
     selected = id;
     branch = {};
-    if(!id) return;
-    (function walk(x){ branch[x] = 1; (kids[x] || []).forEach(walk); })(id);
+    if(id){ (function walk(x){ branch[x] = 1; (kids[x] || []).forEach(walk); })(id); }
+    /* 選んだ枝へカメラを寄せる。何も選んでいなければ全体へ戻す。
+       測り直すだけで、寄っていくのは easeFit がゆっくりやる */
+    measureR(); follow = 1;
     dirty = true;
   }
   function collapse(id){
@@ -858,15 +860,32 @@
     SPREAD = Math.max(1, Math.min(2, Math.min(W, H) / 430));
     dirty = true;
   }
-  var fitR = 0;      /* 収める半径。measureR() を呼んだときだけ測り直す */
-  /* 外れ値に引っぱられないよう、外側5%は切って測る。1つ遠くへ流れた点のために
-     全体が小さくなるのを避ける */
+  /* 収める範囲。measureR() を呼んだときだけ測り直す。
+     何も選んでいなければ全体を、サークルを選んだらその配下だけを収める。
+     外れ値に引っぱられないよう、外側5%は切って測る。 */
+  var fitR = 0, fitCx = 0, fitCy = 0;
   function measureR(){
-    var vis = nodes.filter(visible);
-    if(!vis.length) return;
-    var rs = vis.map(function(n){ return Math.sqrt(n.x * n.x + n.y * n.y); })
-                .sort(function(a, b){ return a - b; });
-    fitR = (rs[Math.min(rs.length - 1, Math.floor(rs.length * 0.95))] || 1) * 0.86;
+    var set = nodes.filter(visible);
+    if(!set.length) return;
+    var cx = 0, cy = 0, zoom = false;
+    if(selected && (kids[selected] || []).length){
+      var br = set.filter(function(n){ return branch[n.id]; });
+      if(br.length > 1){
+        var x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+        br.forEach(function(n){
+          x0 = Math.min(x0, n.x); x1 = Math.max(x1, n.x);
+          y0 = Math.min(y0, n.y); y1 = Math.max(y1, n.y);
+        });
+        set = br; cx = (x0 + x1) / 2; cy = (y0 + y1) / 2; zoom = true;
+      }
+    }
+    var rs = set.map(function(n){
+      return Math.sqrt((n.x - cx) * (n.x - cx) + (n.y - cy) * (n.y - cy));
+    }).sort(function(a, b){ return a - b; });
+    var q = rs[Math.min(rs.length - 1, Math.floor(rs.length * 0.95))] || 1;
+    /* 枝に寄るときは、まわりが少し見えているほうが位置を見失わない */
+    fitR = q * (zoom ? 1.45 : 0.86);
+    fitCx = cx; fitCy = cy;
   }
   function fitTarget(){
     var vis = nodes.filter(visible);
@@ -890,8 +909,9 @@
     }
     var sc = Math.min((W - padX * 2) / Math.max(R * 2, 1),
                       (H - padT - padB) / Math.max(R * 2, 1));
-    sc = Math.max(0.25, Math.min(sc, 1.5));
-    return { s:sc, x:W / 2, y:padT + (H - padT - padB) / 2 };
+    sc = Math.max(0.25, Math.min(sc, 2.0));   /* 小さな枝に寄りすぎないよう上限 */
+    return { s:sc, x:W / 2 - fitCx * sc,
+             y:padT + (H - padT - padB) / 2 - fitCy * sc };
   }
   function fit(){
     measureR();
