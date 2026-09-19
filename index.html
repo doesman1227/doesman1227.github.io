@@ -527,6 +527,7 @@
        このあと stepFlight が「もう着いた」と判断して、切り替え時に
        与えたはずの整える力(alpha/hot)を上書きしてしまう */
     flying = false;
+    fitR = 0;          /* 木が変わるので、収める半径は測り直す */
     var all = {};
     vNodes.forEach(function(n){ all[n.id] = n; });
     kids = {}; parentOf = {};
@@ -791,6 +792,16 @@
       a.vx -= a.x * 0.004 * alpha * dt; a.vy -= a.y * 0.004 * alpha * dt;
       a.vx *= damp; a.vy *= damp;
       a.x += a.vx * dt; a.y += a.vy * dt;
+      /* 自分の輪から大きく外れないようにする。1つでも遠くへ流れると
+         画面の収まりが変わり、全体が伸び縮みして見えるため */
+      if(a.depth !== undefined && a.depth > 0){
+        var lim = RING[Math.min(a.depth, RING.length - 1)] * SPREAD * 1.4;
+        var rr = Math.sqrt(a.x * a.x + a.y * a.y);
+        if(rr > lim){
+          a.x *= lim / rr; a.y *= lim / rr;
+          a.vx *= 0.4; a.vy *= 0.4;
+        }
+      }
     }
     /* 落ち着くにつれて動きを収める。下の2つの回り込みはこれに乗せる */
     var spin = Math.min(1, hot / 1040);
@@ -847,14 +858,23 @@
     SPREAD = Math.max(1, Math.min(2, Math.min(W, H) / 430));
     dirty = true;
   }
+  var fitR = 0;      /* 収める半径。measureR() を呼んだときだけ測り直す */
+  /* 外れ値に引っぱられないよう、外側5%は切って測る。1つ遠くへ流れた点のために
+     全体が小さくなるのを避ける */
+  function measureR(){
+    var vis = nodes.filter(visible);
+    if(!vis.length) return;
+    var rs = vis.map(function(n){ return Math.sqrt(n.x * n.x + n.y * n.y); })
+                .sort(function(a, b){ return a - b; });
+    fitR = (rs[Math.min(rs.length - 1, Math.floor(rs.length * 0.95))] || 1) * 1.12;
+  }
   function fitTarget(){
     var vis = nodes.filter(visible);
     if(!vis.length) return null;
-    var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-    vis.forEach(function(n){
-      x0 = Math.min(x0, n.x); x1 = Math.max(x1, n.x);
-      y0 = Math.min(y0, n.y); y1 = Math.max(y1, n.y);
-    });
+    /* 収める半径 fitR は、決まった瞬間にだけ測り直す(measureR)。
+       毎フレーム測ると、点が1つ外へ流れるたびに画面全体が伸び縮みする。
+       中心(self)は原点に固定してあるので、そこを画面の中央に置く。 */
+    var R = fitR || 1;
     /* ラベルは点の外側に出るので、上下は多めに余白をとる */
     /* 下端の切り替えバーは折り返して高さが変わるので、実寸を測って空ける */
     var bar = document.getElementById('views');
@@ -868,16 +888,26 @@
       var h1 = he && he.querySelector('h1');
       if(h1){ padT = Math.max(padT, h1.getBoundingClientRect().bottom + 20); }
     }
-    var sc = Math.min((W - padX * 2) / Math.max(x1 - x0, 1),
-                      (H - padT - padB) / Math.max(y1 - y0, 1));
+    var sc = Math.min((W - padX * 2) / Math.max(R * 2, 1),
+                      (H - padT - padB) / Math.max(R * 2, 1));
     sc = Math.max(0.25, Math.min(sc, 1.5));
-    return { s:sc, x:W / 2 - (x0 + x1) / 2 * sc,
-             y:padT + (H - padT - padB) / 2 - (y0 + y1) / 2 * sc };
+    return { s:sc, x:W / 2, y:padT + (H - padT - padB) / 2 };
   }
   function fit(){
+    measureR();
     var t = fitTarget();
     if(!t) return;
     scale = t.s; tx = t.x; ty = t.y; dirty = true;
+  }
+  /* 落ち着いてから測り直す。初動は勢いで外へ行き過ぎるので、そこで測ると
+     枠が緩くなり、収まったあとに星図だけ小さく残る */
+  function refitLater(token){
+    [1200, 2600].forEach(function(ms){
+      setTimeout(function(){
+        if(token !== viewSeq || !follow) return;
+        measureR(); dirty = true;
+      }, ms);
+    });
   }
   /* 展開・縮小のあいだは、収まるようにカメラをゆっくり追従させる */
   function easeFit(){
@@ -1260,7 +1290,7 @@
   document.getElementById('greset').addEventListener('click', function(){
     nodes.forEach(function(n){ if(!n.pin){ n.fx = n.fy = null; } });
     opened = initialOpened(); recomputeShown(); setSelected(null);
-    alpha = 0.8; hot = 1600; follow = 1; fit();
+    fitR = 0; alpha = 0.8; hot = 1600; follow = 1; fit();
   });
 
   /* ---- 表示の切り替え(しりたい / ありたい / 考えの熟し方 / つぶやき) ----
@@ -1308,11 +1338,7 @@
         n.x *= 0.45; n.y *= 0.45; n.appear = 0;
       });
       alpha = 1; hot = 2400; burst = BURST0; follow = 1; fit();
-      /* この時点では点がまだ中心に固まっているので、飛び終わってから測り直す。
-         そのあいだに自分で動かした(follow が切れた)ときは、そのままにする */
-      [700, 1600].forEach(function(ms){
-        setTimeout(function(){ if(token === viewSeq && follow){ fit(); } }, ms);
-      });
+      refitLater(token);
       dirty = true;
     }, wait);
     dirty = true;
@@ -1321,7 +1347,7 @@
 
   /* ---- 起動 ---- */
   window.addEventListener('resize', function(){
-    resize(); alpha = Math.max(alpha, 0.3); hot = 960; follow = 1; fit();
+    resize(); fitR = 0; alpha = Math.max(alpha, 0.3); hot = 960; follow = 1; fit();
   });
   if(window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)')
     .addEventListener('change', function(){ readTheme(); dirty = true; });
@@ -1340,6 +1366,7 @@
     });
     fit(); scale = Math.min(scale, 1.2);
     alpha = 1; hot = 2400; burst = BURST0; follow = 1;
+    refitLater(viewSeq);
     frame();
   }
 })();
