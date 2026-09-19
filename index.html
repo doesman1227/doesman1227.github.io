@@ -866,7 +866,7 @@
     if(!vis.length) return;
     var rs = vis.map(function(n){ return Math.sqrt(n.x * n.x + n.y * n.y); })
                 .sort(function(a, b){ return a - b; });
-    fitR = (rs[Math.min(rs.length - 1, Math.floor(rs.length * 0.95))] || 1) * 1.12;
+    fitR = (rs[Math.min(rs.length - 1, Math.floor(rs.length * 0.95))] || 1) * 0.86;
   }
   function fitTarget(){
     var vis = nodes.filter(visible);
@@ -879,8 +879,8 @@
     /* 下端の切り替えバーは折り返して高さが変わるので、実寸を測って空ける */
     var bar = document.getElementById('views');
     var barH = bar ? bar.offsetHeight : 0;
-    var padX = Math.max(56, W * 0.09), padT = Math.max(96, H * 0.14),
-        padB = Math.max(112, barH + 56, H * 0.16);   /* +56 は点の下に出るラベルのぶん */
+    var padX = Math.max(28, W * 0.035), padT = Math.max(80, H * 0.09),
+        padB = Math.max(84, barH + 34, H * 0.11);    /* +34 は点の下に出るラベルのぶん */
     if(!document.body.classList.contains('touched')){
       /* 触る前は見出しが出ている。避けるのは大見出しまで。
          添え文まで避けると描ける面積が半分以下になり、星図が小さくなりすぎる。 */
