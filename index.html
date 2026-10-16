@@ -14,14 +14,14 @@
     --line:#e7e7e7; --hover:#f6f6f6; --scrim:rgba(20,20,20,.28);
     --edge:#d8d8d8; --edge-hi:#8f8f8f; --node-home:#3b3b3b; --node:#9aa0a6;
     --c-mindfulness:#6f9a86; --c-quantum:#6d86b8; --c-management:#b08a5a;
-    --c-knowledge:#8d7fb0; --c-ai:#b0707f; --c-theme:#9a9a9a; --c-recent:#5fc21a;
+    --c-knowledge:#8d7fb0; --c-ai:#b0707f; --c-theme:#9a9a9a; --c-recent:#0fb3a3;
   }
   @media (prefers-color-scheme: dark){
     :root{ --bg:#0d0d0d; --ink:#f1f1f1; --muted:#8a8a8a; --faint:#5a5a5a;
       --line:#232323; --hover:#161616; --scrim:rgba(0,0,0,.5);
       --edge:#2c2c2c; --edge-hi:#767676; --node-home:#e8e8e8; --node:#b4b9bd;
       --c-mindfulness:#84b39c; --c-quantum:#8099cc; --c-management:#c69f6c;
-      --c-knowledge:#a294c6; --c-ai:#c58493; --c-theme:#8e8e8e; --c-recent:#a8f24c; }
+      --c-knowledge:#a294c6; --c-ai:#c58493; --c-theme:#8e8e8e; --c-recent:#3ff0dc; }
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
@@ -1067,7 +1067,7 @@
   }
   /* ふだんはモノクロ。色は「触れた点」と「選んだ枝」にだけ出す。
      色そのものの意味は1つに決めてある —— その点がどの「しくみ」に属するか。
-       世界=青 / 社会=琥珀 / 人間=紫 / 自分=AI色。最近の関心だけは、選んだあとも --c-recent(黄緑)で灯す
+       世界=青 / 社会=琥珀 / 人間=紫 / 自分=AI色。最近の関心だけは、選んだあとも --c-recent(ターコイズ)で灯す
      3つのビューで同じ対応なので、ビューをまたいでも色の意味が変わらない。 */
   function keepColor(n){
     if(hover === n) return true;          /* カーソルを置いた点 */
@@ -1120,7 +1120,7 @@
       var lit = !!branch[n.id];
       var md = modeOf[n.id];
       /* 最近つぶやいたカテゴリは、選んだあとも含めていつでも --c-recent で灯す。
-         しくみの色(青・琥珀・紫・ローズ)と混ざらない、黄緑にしてある */
+         しくみの色(青・琥珀・紫・ローズ)と混ざらない、ターコイズにしてある */
       var col = n.recent ? theme.recent : (md && keepColor(n)) ? theme[md] : theme.node;
       var ap = n.appear === undefined ? 1 : n.appear;   /* 出てくるときのフェード */
       ctx.globalAlpha = (n.recent ? (dim ? 0.75 : 1) : dim ? 0.3 : selected && !lit ? 0.55 : 1) * ap;
