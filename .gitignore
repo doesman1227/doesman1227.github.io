@@ -10,3 +10,6 @@ __pycache__/
 # ASIS-TOBE.md は vault (00_Home/03_AsIs-ToBe-Gap.md) へ移した
 vault-state.json
 asis_tobe.py
+
+# バックアップは公開リポジトリに入れない。
+*.bak*
