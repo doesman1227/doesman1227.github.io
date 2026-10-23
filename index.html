@@ -1247,14 +1247,26 @@
     var n = hover || (selected ? byId[selected] : null);
     if(n && !(n.img || n.vid)){ n = null; }
     if(!n){
-      if(peekId){ peekId = null; peek.classList.remove('on'); peekFrame.innerHTML = ''; }
+      if(peekId){ peekId = null; peek.classList.remove('on'); peekFrame.textContent = ''; }
       return;
     }
     if(n.id !== peekId){
       peekId = n.id;
-      peekFrame.innerHTML = n.vid
-        ? '<video src="' + n.vid + '" muted loop playsinline autoplay></video>'
-        : '<img src="' + n.img + '" alt="">';
+      /* 属性値を文字列連結すると、パスに " が混ざったときにHTMLを壊せる。
+         src は setAttribute で渡す。 */
+      peekFrame.textContent = '';
+      var media;
+      if(n.vid){
+        media = document.createElement('video');
+        media.muted = true; media.loop = true; media.autoplay = true;
+        media.playsInline = true; media.setAttribute('playsinline', '');
+        media.setAttribute('src', n.vid);
+      } else {
+        media = document.createElement('img');
+        media.alt = '';
+        media.setAttribute('src', n.img);
+      }
+      peekFrame.appendChild(media);
       peekCap.textContent = n.label || '';
       peek.classList.add('on');
     }
