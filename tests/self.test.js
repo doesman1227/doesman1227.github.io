@@ -230,3 +230,12 @@ test('self.json: pillar の割り振りと ref_label の裁定が守られてい
   assert.equal(noRef.length, 1);
   assert.match(noRef[0].memo, /（下記）$/);
 });
+
+test('validateSelf は prototype 由来の名前の柱の key を誤って重複としない', () => {
+  const items = [
+    { kind: '柱', key: 'constructor', title: 'a', memo: 'm' },
+    { kind: '柱', key: '__proto__', title: 'b', memo: 'm' },
+    { kind: '柱', key: 'toString', title: 'c', memo: 'm' }
+  ];
+  assert.deepEqual(S.validateSelf(items), []);
+});
