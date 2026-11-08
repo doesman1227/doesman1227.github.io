@@ -117,3 +117,44 @@ test('byPillar は柱自身を含めない', () => {
   assert.deepEqual(S.byPillar(sample, '創る').map(i => i.kind), ['手がかり']);
   assert.deepEqual(S.byPillar(sample, '歩く'), []);
 });
+
+const fs = require('node:fs');
+const path = require('node:path');
+const canon = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'self.json'), 'utf8'));
+
+test('self.json が検証を通る', () => {
+  assert.deepEqual(S.validateSelf(canon.items), []);
+});
+
+test('self.json: 公開される旨の注意が note にある', () => {
+  assert.match(canon.note, /公開/);
+});
+
+test('self.json: 生き方の件数がそろっている', () => {
+  const n = k => S.byKind(canon.items, k).length;
+  assert.equal(n('柱'), 7);
+  assert.equal(n('終わりに'), 5);
+  assert.equal(n('ありたい姿'), 6);
+  assert.equal(n('現状'), 6);
+  assert.equal(n('隔たり'), 4);
+  assert.equal(n('原則'), 5);
+  assert.equal(n('手がかり'), 5);
+  assert.equal(n('しるし'), 3);
+  assert.equal(n('差し出すもの'), 3);
+  assert.equal(n('問い'), 23);
+});
+
+test('self.json: 柱は7つの動詞', () => {
+  assert.deepEqual(S.pillarKeys(canon.items),
+    ['知る', '感じる', '歩く', '関わる', '創る', '楽しむ', '素直に']);
+});
+
+test('self.json: 問いは4群に分かれる', () => {
+  assert.deepEqual(S.groupByKey(canon.items, '問い').map(g => g.key),
+    ['暮らしと、時間と', '生きることについて', '自分について', '人と、仕事と']);
+});
+
+test('self.json: 柱に載らないありたい姿が2件ある', () => {
+  const orphan = S.byKind(canon.items, 'ありたい姿').filter(i => S.toPillarList(i.pillar).length === 0);
+  assert.equal(orphan.length, 2);
+});
