@@ -80,3 +80,40 @@ test('toPillarList', () => {
   assert.deepEqual(S.toPillarList('知る'), ['知る']);
   assert.deepEqual(S.toPillarList(['知る', '創る']), ['知る', '創る']);
 });
+
+const sample = [
+  { kind: '柱', key: '知る', title: '世界そのものを知りたい', memo: 'm' },
+  { kind: '柱', key: '創る', title: '何かを生み出したい', memo: 'm' },
+  { kind: '問い', key: '自分について', title: 'なぜ人間は刺激を求めるのか' },
+  { kind: '問い', key: '暮らしと、時間と', title: '精神的な自由を保つにはどうすればいいか' },
+  { kind: '問い', key: '自分について', title: '安定と刺激の最適なバランスはどこか' },
+  { kind: '手がかり', title: '成果に結びつけずに楽しむ。', pillar: ['知る', '創る'] },
+  { kind: 'しるし', title: '思い出の数', pillar: '知る' }
+];
+
+test('byKind は元の並び順を保つ', () => {
+  assert.deepEqual(S.byKind(sample, '問い').map(i => i.title), [
+    'なぜ人間は刺激を求めるのか',
+    '精神的な自由を保つにはどうすればいいか',
+    '安定と刺激の最適なバランスはどこか'
+  ]);
+  assert.deepEqual(S.byKind(sample, 'ルーチン'), []);
+});
+
+test('groupByKey は key の初出順で束ねる', () => {
+  const g = S.groupByKey(sample, '問い');
+  assert.deepEqual(g.map(x => x.key), ['自分について', '暮らしと、時間と']);
+  assert.equal(g[0].items.length, 2);
+  assert.equal(g[1].items.length, 1);
+});
+
+test('groupByKey: key の無い項目は落とさず "" に束ねる', () => {
+  const g = S.groupByKey([{ kind: 'しるし', title: 'x' }], 'しるし');
+  assert.deepEqual(g.map(x => x.key), ['']);
+});
+
+test('byPillar は柱自身を含めない', () => {
+  assert.deepEqual(S.byPillar(sample, '知る').map(i => i.kind), ['手がかり', 'しるし']);
+  assert.deepEqual(S.byPillar(sample, '創る').map(i => i.kind), ['手がかり']);
+  assert.deepEqual(S.byPillar(sample, '歩く'), []);
+});

@@ -70,9 +70,33 @@
     return errors;
   }
 
+  function byKind(items, kind) {
+    if (!Array.isArray(items)) return [];
+    return items.filter(function (it) { return it && it.kind === kind; });
+  }
+
+  function groupByKey(items, kind) {
+    var order = [];
+    var bucket = Object.create(null);
+    byKind(items, kind).forEach(function (it) {
+      var k = typeof it.key === 'string' ? it.key : '';
+      if (!(k in bucket)) { bucket[k] = []; order.push(k); }
+      bucket[k].push(it);
+    });
+    return order.map(function (k) { return { key: k, items: bucket[k] }; });
+  }
+
+  function byPillar(items, pillarKey) {
+    if (!Array.isArray(items)) return [];
+    return items.filter(function (it) {
+      return it && it.kind !== '柱' && toPillarList(it.pillar).indexOf(pillarKey) !== -1;
+    });
+  }
+
   var api = {
     KINDS: KINDS, STATES: STATES, SCENES: SCENES,
-    validateSelf: validateSelf, pillarKeys: pillarKeys, toPillarList: toPillarList
+    validateSelf: validateSelf, pillarKeys: pillarKeys, toPillarList: toPillarList,
+    byKind: byKind, groupByKey: groupByKey, byPillar: byPillar
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Self = api;
