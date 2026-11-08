@@ -158,3 +158,14 @@ test('self.json: 柱に載らないありたい姿が2件ある', () => {
   const orphan = S.byKind(canon.items, 'ありたい姿').filter(i => S.toPillarList(i.pillar).length === 0);
   assert.equal(orphan.length, 2);
 });
+
+test('self.json: 続け方は4件で、pillar は付かない', () => {
+  const got = S.byKind(canon.items, '続け方');
+  assert.equal(got.length, 4);
+  assert.ok(got.every(i => i.memo && i.pillar === undefined));
+});
+
+test('self.json: ルーチンはまだ0件(受け皿だけある)', () => {
+  assert.equal(S.byKind(canon.items, 'ルーチン').length, 0);
+  assert.deepEqual(S.validateSelf(canon.items), []);
+});
