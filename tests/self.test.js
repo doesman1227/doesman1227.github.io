@@ -169,3 +169,24 @@ test('self.json: ルーチンはまだ0件(受け皿だけある)', () => {
   assert.equal(S.byKind(canon.items, 'ルーチン').length, 0);
   assert.deepEqual(S.validateSelf(canon.items), []);
 });
+
+test('self.json: これからの件数がそろっている', () => {
+  const n = k => S.byKind(canon.items, k).length;
+  assert.equal(n('やりたい'), 13);      // now 2 ＋ future.do 11
+  assert.equal(n('行きたい'), 5);
+  assert.equal(n('欲しい'), 2);
+  assert.equal(n('やったこと'), 2);
+  assert.equal(n('行ったところ'), 1);
+  assert.equal(n('楽しかったこと'), 2);
+});
+
+test('self.json: いま は2件だけ', () => {
+  const now = canon.items.filter(i => i.state === 'いま');
+  assert.equal(now.length, 2);
+});
+
+test('self.json: これまで は全件 date を持つ', () => {
+  canon.items.filter(i => i.state === 'これまで').forEach(i => {
+    assert.ok(i.date, i.title + ' に date がありません');
+  });
+});
