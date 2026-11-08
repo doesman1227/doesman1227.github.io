@@ -190,3 +190,43 @@ test('self.json: これまで は全件 date を持つ', () => {
     assert.ok(i.date, i.title + ' に date がありません');
   });
 });
+
+test('KINDS / STATES / SCENES の値は固定（後続のページとデータが依存する）', () => {
+  assert.deepEqual(S.KINDS, [
+    '柱', '終わりに', 'ありたい姿', '現状', '隔たり', '原則', '手がかり', 'しるし',
+    '差し出すもの', '問い', '続け方', 'ルーチン',
+    'やりたい', '行きたい', '欲しい', 'やったこと', '行ったところ', '楽しかったこと'
+  ]);
+  assert.deepEqual(S.STATES, ['いま', 'これから', 'これまで']);
+  assert.deepEqual(S.SCENES, ['住む', '着る', '食べる', '健康', 'おかね']);
+});
+
+test('groupByKey は prototype 由来の名前の key でも壊れない', () => {
+  const items = [
+    { kind: '問い', key: 'constructor', title: 'a' },
+    { kind: '問い', key: '__proto__', title: 'b' },
+    { kind: '問い', key: 'toString', title: 'c' },
+    { kind: '問い', key: 'constructor', title: 'd' }
+  ];
+  const g = S.groupByKey(items, '問い');
+  assert.deepEqual(g.map(x => x.key), ['constructor', '__proto__', 'toString']);
+  assert.equal(g[0].items.length, 2);
+  assert.equal(g[1].items.length, 1);
+});
+
+test('self.json: pillar の割り振りと ref_label の裁定が守られている', () => {
+  const keys = S.pillarKeys(canon.items);
+  const counts = {};
+  keys.forEach(k => { counts[k] = S.byPillar(canon.items, k).length; });
+  assert.deepEqual(counts, { 知る: 3, 感じる: 3, 歩く: 3, 関わる: 3, 創る: 2, 楽しむ: 3, 素直に: 8 });
+
+  const labelled = canon.items.filter(i => i.ref_label !== undefined);
+  assert.equal(labelled.length, 6);
+  labelled.forEach(i => assert.ok(i.ref, i.title + ' に ref が無い'));
+  assert.deepEqual(S.byKind(canon.items, '柱').filter(i => i.ref_label).map(i => i.ref_label),
+    ['旅', '創り方']);
+
+  const noRef = S.byKind(canon.items, '原則').filter(i => i.ref === undefined);
+  assert.equal(noRef.length, 1);
+  assert.match(noRef[0].memo, /（下記）$/);
+});

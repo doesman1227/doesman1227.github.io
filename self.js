@@ -7,7 +7,7 @@
                'やりたい', '行きたい', '欲しい', 'やったこと', '行ったところ', '楽しかったこと'];
   var STATES = ['いま', 'これから', 'これまで'];
   var SCENES = ['住む', '着る', '食べる', '健康', 'おかね'];
-  var OPTIONAL_STRINGS = ['memo', 'key', 'state', 'date', 'source', 'ref'];
+  var OPTIONAL_STRINGS = ['memo', 'key', 'state', 'date', 'source', 'ref', 'ref_label'];
 
   function toPillarList(v) {
     if (v === undefined || v === null) return [];
@@ -28,7 +28,7 @@
     if (!Array.isArray(items)) return ['データが配列ではありません'];
     var errors = [];
     var keys = pillarKeys(items);
-    var seen = {};
+    var seen = Object.create(null);
     items.forEach(function (it, n) {
       var where = '[' + n + '] ' + (it && it.title ? it.title : '(titleなし)') + ': ';
       if (!it || typeof it !== 'object') { errors.push('[' + n + '] 項目がオブジェクトではありません'); return; }
