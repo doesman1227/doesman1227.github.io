@@ -14,7 +14,7 @@ test('validateSelf: 正しいデータはエラーなし', () => {
     柱('知る', '世界そのものを知りたい'),
     { kind: '手がかり', title: '心惹かれる世界に触れる機会をつくる。', pillar: '知る' },
     { kind: '問い', key: '自分について', title: 'なぜ人間は刺激を求めるのか' },
-    { kind: 'やりたい', title: '部屋を片付けて、物を減らす', state: 'これから', memo: 'm' },
+    { kind: 'ありたい姿', title: '素敵なものだけに囲まれて暮らす', memo: 'm' },
     { kind: 'ルーチン', key: '健康', title: '歩いたあとの感覚を記録する' }
   ];
   assert.deepEqual(S.validateSelf(items), []);
@@ -52,7 +52,7 @@ test('validateSelf: 柱は pillar を持てない', () => {
 });
 
 test('validateSelf: state が未知', () => {
-  const e = S.validateSelf([{ kind: 'やりたい', title: 'x', state: 'むかし' }]);
+  const e = S.validateSelf([{ kind: 'ありたい姿', title: 'x', state: 'むかし' }]);
   assert.match(e[0], /state が不正です: むかし/);
 });
 
@@ -170,32 +170,21 @@ test('self.json: ルーチンはまだ0件(受け皿だけある)', () => {
   assert.deepEqual(S.validateSelf(canon.items), []);
 });
 
-test('self.json: これからの件数がそろっている', () => {
-  const n = k => S.byKind(canon.items, k).length;
-  assert.equal(n('やりたい'), 13);      // now 2 ＋ future.do 11
-  assert.equal(n('行きたい'), 5);
-  assert.equal(n('欲しい'), 2);
-  assert.equal(n('やったこと'), 2);
-  assert.equal(n('行ったところ'), 1);
-  assert.equal(n('楽しかったこと'), 2);
+test('self.json: 移した六つの kind はもう入っていない', () => {
+  // 経験・体験 / 場所・旅行 / モノ の各 build_items.py が正典。ここに戻すと二正典になる。
+  ['やりたい', '行きたい', '欲しい', 'やったこと', '行ったところ', '楽しかったこと']
+    .forEach(k => assert.equal(S.byKind(canon.items, k).length, 0, k + ' が残っています'));
 });
 
-test('self.json: いま は2件だけ', () => {
-  const now = canon.items.filter(i => i.state === 'いま');
-  assert.equal(now.length, 2);
-});
-
-test('self.json: これまで は全件 date を持つ', () => {
-  canon.items.filter(i => i.state === 'これまで').forEach(i => {
-    assert.ok(i.date, i.title + ' に date がありません');
-  });
+test('self.json: 残った項目は state を持たない', () => {
+  // state(いま/これから/これまで)は移した六つのための欄だった
+  canon.items.forEach(i => assert.equal(i.state, undefined, i.title + ' に state があります'));
 });
 
 test('KINDS / STATES / SCENES の値は固定（後続のページとデータが依存する）', () => {
   assert.deepEqual(S.KINDS, [
     '柱', '終わりに', 'ありたい姿', '現状', '隔たり', '原則', '手がかり', 'しるし',
-    '差し出すもの', '問い', '続け方', 'ルーチン',
-    'やりたい', '行きたい', '欲しい', 'やったこと', '行ったところ', '楽しかったこと'
+    '差し出すもの', '問い', '続け方', 'ルーチン'
   ]);
   assert.deepEqual(S.STATES, ['いま', 'これから', 'これまで']);
   assert.deepEqual(S.SCENES, ['住む', '着る', '食べる', '健康', 'おかね']);
