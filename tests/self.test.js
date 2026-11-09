@@ -165,8 +165,10 @@ test('self.json: 続け方は4件で、pillar は付かない', () => {
   assert.ok(got.every(i => i.memo && i.pillar === undefined));
 });
 
-test('self.json: ルーチンはまだ0件(受け皿だけある)', () => {
+test('self.json: ルーチンと整えたいはまだ0件(受け皿だけある)', () => {
+  // どちらも これから(joy) の「定着していきたいこと」「整えたいこと」が読む枠
   assert.equal(S.byKind(canon.items, 'ルーチン').length, 0);
+  assert.equal(S.byKind(canon.items, '整えたい').length, 0);
   assert.deepEqual(S.validateSelf(canon.items), []);
 });
 
@@ -184,7 +186,7 @@ test('self.json: 残った項目は state を持たない', () => {
 test('KINDS / STATES / SCENES の値は固定（後続のページとデータが依存する）', () => {
   assert.deepEqual(S.KINDS, [
     '柱', '終わりに', 'ありたい姿', '現状', '隔たり', '原則', '手がかり', 'しるし',
-    '差し出すもの', '問い', '続け方', 'ルーチン'
+    '差し出すもの', '問い', '続け方', 'ルーチン', '整えたい'
   ]);
   assert.deepEqual(S.STATES, ['いま', 'これから', 'これまで']);
   assert.deepEqual(S.SCENES, ['住む', '着る', '食べる', '健康', 'おかね']);
