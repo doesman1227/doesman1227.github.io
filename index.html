@@ -179,18 +179,24 @@
   .grp-body{border-left:1px solid var(--line); margin-left:5px; padding-left:15px}
   .grp-body .row{border-bottom:0}
   .grp-body .row + .row{border-top:1px solid var(--line)}
-  .row{display:grid; grid-template-columns:auto 1fr; align-items:baseline; gap:16px;
-    padding:20px 4px; border-bottom:1px solid var(--line); text-decoration:none; color:inherit;
-    transition:background .22s, padding .22s}
-  .row:hover{background:var(--hover); padding-left:12px; padding-right:12px}
+  /* 行の寸法は群の見出し(.grp-btn / .grp-link)に揃える。
+     見出しが「名前＋英字／説明」の二段なので、行も同じ組み方にする。 */
+  .row{display:grid; grid-template-columns:auto 1fr auto; align-items:baseline; gap:11px;
+    padding:18px 4px 14px; border-bottom:1px solid var(--line); text-decoration:none; color:inherit;
+    transition:background .22s}
+  .row:hover{background:var(--hover)}
+  .row:hover .ttl{color:var(--muted)}
   .row:focus-visible{outline:2px solid var(--ink); outline-offset:-2px}
-  .idx{font-family:"Noto Serif JP",serif; font-weight:500; font-size:.9rem; color:var(--faint);
+  .row::after{content:"→"; font-size:.72rem; color:var(--faint); transition:transform .22s}
+  .row:hover::after{transform:translateX(3px)}
+  .idx{font-family:"Noto Serif JP",serif; font-weight:500; font-size:.72rem; color:var(--faint);
     letter-spacing:.05em}
-  .cat{font-size:.62rem; font-weight:700; letter-spacing:.2em; color:var(--muted);
-    display:block; margin-bottom:6px}
-  .ttl{font-family:"Noto Serif JP",serif; font-weight:600; font-size:1.15rem; color:var(--ink);
-    line-height:1.35}
-  .desc{display:block; margin-top:7px; font-size:.8rem; color:var(--muted); line-height:1.75}
+  .body{display:flex; flex-wrap:wrap; align-items:baseline; gap:11px}
+  .ttl{order:1; font-family:"Noto Serif JP",serif; font-weight:600; font-size:.92rem;
+    color:var(--ink); letter-spacing:.1em; line-height:1.35}
+  .cat{order:2; font-size:.56rem; font-weight:700; letter-spacing:.22em; color:var(--faint)}
+  .desc{order:3; flex-basis:100%; margin-top:6px; font-size:.74rem; color:var(--muted);
+    line-height:1.7}
 
   .drawer footer{margin-top:auto; padding-top:30px; color:var(--muted)}
   .foot-line{display:flex; justify-content:space-between; align-items:center; gap:14px;
@@ -208,7 +214,7 @@
     .drawer{width:100%; border-left:0; padding-left:20px; padding-right:20px}
   }
   @media (prefers-reduced-motion: reduce){
-    .hero,.drawer,.scrim,.grp-wrap,.grp-btn::after,.grp-link::after{transition:none}
+    .hero,.drawer,.scrim,.grp-wrap,.grp-btn::after,.grp-link::after,.row::after{transition:none}
   }
 </style>
 </head>
