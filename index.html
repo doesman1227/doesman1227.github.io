@@ -151,12 +151,24 @@
   /* ---- しくみごとの階層（グラフの4テーマに対応） ---- */
   .grp{padding:6px 0 2px}
   .grp + .grp{border-top:1px solid var(--line)}
-  .grp-h{display:flex; align-items:baseline; gap:11px; padding:18px 4px 12px}
+  .grp-h{margin:0}
+  .grp-btn{display:flex; align-items:baseline; gap:11px; width:100%; padding:18px 4px 12px;
+    background:none; border:0; font:inherit; color:inherit; text-align:left; cursor:pointer}
+  .grp-btn:hover .grp-ja{color:var(--muted)}
+  .grp-btn:focus-visible{outline:2px solid var(--ink); outline-offset:-2px}
+  .grp-btn::after{content:""; flex:none; width:6px; height:6px; margin-left:11px;
+    align-self:center; border-right:1.4px solid var(--faint); border-bottom:1.4px solid var(--faint);
+    transform:translateY(-2px) rotate(45deg); transition:transform .3s}
+  .grp.open .grp-btn::after{transform:translateY(1px) rotate(-135deg)}
+  .grp-wrap{display:grid; grid-template-rows:0fr; visibility:hidden;
+    transition:grid-template-rows .32s ease, visibility .32s}
+  .grp.open .grp-wrap{grid-template-rows:1fr; visibility:visible}
+  .grp-wrap > .grp-body{overflow:hidden; min-height:0}
   .grp-ja{font-family:"Noto Serif JP",serif; font-weight:600; font-size:.92rem; color:var(--ink);
     letter-spacing:.1em}
   .grp-en{font-size:.56rem; font-weight:700; letter-spacing:.22em; color:var(--faint)}
   .grp-n{margin-left:auto; font-size:.6rem; letter-spacing:.14em; color:var(--faint)}
-  .grp-desc{margin:-6px 4px 12px; font-size:.74rem; line-height:1.7; color:var(--muted)}
+  .grp-desc{margin:-6px 4px 14px; font-size:.74rem; line-height:1.7; color:var(--muted)}
   .grp-body{border-left:1px solid var(--line); margin-left:5px; padding-left:15px}
   .grp-solo .grp-body{border-left:0; margin-left:0; padding-left:0}
   .grp-body .row{border-bottom:0}
@@ -190,7 +202,7 @@
     .drawer{width:100%; border-left:0; padding-left:20px; padding-right:20px}
   }
   @media (prefers-reduced-motion: reduce){
-    .hero,.drawer,.scrim{transition:none}
+    .hero,.drawer,.scrim,.grp-wrap,.grp-btn::after{transition:none}
   }
 </style>
 </head>
@@ -253,11 +265,14 @@
       </section>
       <section class="grp">
         <h2 class="grp-h">
-          <span class="grp-ja">自分のしくみ</span>
-          <span class="grp-en">SELF</span>
-          <span class="grp-n">7</span>
+          <button type="button" class="grp-btn" aria-expanded="true" aria-controls="g-self">
+            <span class="grp-ja">自分のしくみ</span>
+            <span class="grp-en">SELF</span>
+            <span class="grp-n">7</span>
+          </button>
         </h2>
         <p class="grp-desc">自分で選んだ生き方と、それを回すしくみ。</p>
+        <div class="grp-wrap" id="g-self">
         <div class="grp-body">
           <a class="row" href="way-of-life/">
             <span class="idx">03</span>
@@ -316,14 +331,18 @@
             </span>
           </a>
           </div>
+        </div>
       </section>
       <section class="grp">
         <h2 class="grp-h">
-          <span class="grp-ja">世界のしくみ</span>
-          <span class="grp-en">WORLD</span>
-          <span class="grp-n">3</span>
+          <button type="button" class="grp-btn" aria-expanded="true" aria-controls="g-world">
+            <span class="grp-ja">世界のしくみ</span>
+            <span class="grp-en">WORLD</span>
+            <span class="grp-n">3</span>
+          </button>
         </h2>
         <p class="grp-desc">人がいなくても成り立つ、この世界の動き。</p>
+        <div class="grp-wrap" id="g-world">
         <div class="grp-body">
           <a class="row" href="physics/">
             <span class="idx">10</span>
@@ -349,15 +368,19 @@
               <span class="desc">生きものは環境との関係の中で生きている。生きもの図鑑と、DNAから進化・生命科学までの6つのノート。</span>
             </span>
           </a>
+          </div>
         </div>
       </section>
       <section class="grp">
         <h2 class="grp-h">
-          <span class="grp-ja">社会のしくみ</span>
-          <span class="grp-en">SOCIETY</span>
-          <span class="grp-n">4</span>
+          <button type="button" class="grp-btn" aria-expanded="true" aria-controls="g-society">
+            <span class="grp-ja">社会のしくみ</span>
+            <span class="grp-en">SOCIETY</span>
+            <span class="grp-n">4</span>
+          </button>
         </h2>
         <p class="grp-desc">人が集まると何が起き、どう動かしてきたか。</p>
+        <div class="grp-wrap" id="g-society">
         <div class="grp-body">
           <a class="row" href="management/">
             <span class="idx">13</span>
@@ -391,15 +414,19 @@
               <span class="desc">138億年を一本の年表に。地域・宗教・社会・知・文化の歴史と古典を、切り口を重ねて見る。</span>
             </span>
           </a>
+          </div>
         </div>
       </section>
       <section class="grp">
         <h2 class="grp-h">
-          <span class="grp-ja">人間のしくみ</span>
-          <span class="grp-en">HUMAN</span>
-          <span class="grp-n">4</span>
+          <button type="button" class="grp-btn" aria-expanded="true" aria-controls="g-human">
+            <span class="grp-ja">人間のしくみ</span>
+            <span class="grp-en">HUMAN</span>
+            <span class="grp-n">4</span>
+          </button>
         </h2>
         <p class="grp-desc">人間という生きものの、脳と心、そして生きる意味。</p>
+        <div class="grp-wrap" id="g-human">
         <div class="grp-body">
           <a class="row" href="brain/">
             <span class="idx">17</span>
@@ -433,6 +460,7 @@
               <span class="desc">生きる意味から意識、自由意志、死、幸福、愛、美、空まで。答えを急がず、問いがどう深まったかを記録する。</span>
             </span>
           </a>
+          </div>
         </div>
       </section>
     </nav>
@@ -1510,6 +1538,17 @@
     if(open){ drawer.querySelector('.row').focus({ preventScroll:true }); }
     else { menuBtn.focus({ preventScroll:true }); }
   }
+  /* 群ごとの開閉。初期は閉じた状態（JSが無いときは開いたまま出す） */
+  [].slice.call(document.querySelectorAll('.grp-btn')).forEach(function(btn){
+    var sec = btn.closest('section');
+    function set(open){
+      sec.classList.toggle('open', open);
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    set(false);
+    btn.addEventListener('click', function(){ set(!sec.classList.contains('open')); });
+  });
+
   menuBtn.addEventListener('click', function(){ setMenu(!body.classList.contains('menu')); });
   document.getElementById('closeBtn').addEventListener('click', function(){ setMenu(false); });
   document.getElementById('scrim').addEventListener('click', function(){ setMenu(false); });
