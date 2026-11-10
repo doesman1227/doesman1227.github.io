@@ -547,6 +547,9 @@
     return m;
   })();
 
+  /* 第1階層の先頭(一覧と同じ「自分」)。図の真上に留めておく点 */
+  var topId = null;
+
   /* 木構造にそって放射状に初期配置する(自分 → 極/テーマ → カテゴリ → ノート) */
   function place(id, x, y, ang, spread, depth){
     var n = byId[id];
@@ -561,13 +564,24 @@
     var tot = 0;
     ws.forEach(function(w){ tot += w; });
     var acc = 0;
-    ks.forEach(function(c, i){
+    var angs = ks.map(function(c, i){
       var a = ang;
       if(ks.length > 1){
         a = ang - spread / 2 + spread * (acc + ws[i] / 2) / tot;
         a += (jitter(c, 1) - 0.5) * (spread / ks.length) * 0.3;
       }
       acc += ws[i];
+      return a;
+    });
+    /* 第1階層は、先頭が真上に来るよう扇ごと回す。間隔のゆらぎはそのまま
+       持っていくので、等角の十字にはならない。 */
+    if(depth === 0 && angs.length){
+      topId = ks[0];
+      var turn = -Math.PI / 2 - angs[0];
+      angs = angs.map(function(a){ return a + turn; });
+    }
+    ks.forEach(function(c, i){
+      var a = angs[i];
       var rr = r * (0.86 + jitter(c, 2) * 0.3);
       var cn = byId[c];
       if(cn && depth === 0){ cn.seedAng = a; }   /* 第1階層は向きを覚えておく */
@@ -863,6 +877,14 @@
     /* 落ち着くにつれて動きを収める。下の2つの回り込みはこれに乗せる */
     var spin = Math.min(1, hot / 1040);
 
+    /* 先頭の「自分」だけは、図の真上に留める。中心からの距離は力学に任せ、
+       向きだけを固定する(掴んで動かしているあいだは手を離さない)。 */
+    var top = topId ? byId[topId] : null;
+    if(top && !pinned(top)){
+      var td = Math.sqrt(top.x * top.x + top.y * top.y);
+      if(td >= 8){ top.x = 0; top.y = -td; top.vx = 0; }
+    }
+
     /* 第1階層だけ、種を撒いた向きへごく弱く引き戻す。
        兄弟の反発だけに任せると、枝の数ぶんの等角(4本なら十字)に均される。
        角度だけを戻すので距離は力学が決めたまま。落ち着いたら止まるよう
@@ -870,7 +892,7 @@
     if(spin > 0.01){
       for(i = 0; i < act.length; i++){
         a = act[i];
-        if(pinned(a) || a.seedAng === undefined) continue;
+        if(pinned(a) || a.seedAng === undefined || a.id === topId) continue;
         d = Math.sqrt(a.x * a.x + a.y * a.y);
         if(d < 8) continue;
         var cur = Math.atan2(a.y, a.x);
@@ -888,7 +910,7 @@
     if(spin > 0.01){
       for(i = 0; i < act.length; i++){
         a = act[i];
-        if(a.fx != null) continue;
+        if(a.fx != null || a.id === topId) continue;
         var pid = parentOf[a.id];
         if(!pid) continue;
         b = byId[pid];
