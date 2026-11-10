@@ -156,6 +156,13 @@
     background:none; border:0; font:inherit; color:inherit; text-align:left; cursor:pointer}
   .grp-btn:hover .grp-ja{color:var(--muted)}
   .grp-btn:focus-visible{outline:2px solid var(--ink); outline-offset:-2px}
+  .grp-link{display:flex; align-items:baseline; gap:11px; width:100%; padding:18px 4px 12px;
+    text-decoration:none; color:inherit}
+  .grp-link:hover .grp-ja{color:var(--muted)}
+  .grp-link:focus-visible{outline:2px solid var(--ink); outline-offset:-2px}
+  .grp-link::after{content:"→"; margin-left:auto; font-size:.72rem; color:var(--faint);
+    transition:transform .22s}
+  .grp-link:hover::after{transform:translateX(3px)}
   .grp-btn::after{content:""; flex:none; width:6px; height:6px; margin-left:11px;
     align-self:center; border-right:1.4px solid var(--faint); border-bottom:1.4px solid var(--faint);
     transform:translateY(-2px) rotate(45deg); transition:transform .3s}
@@ -170,7 +177,6 @@
   .grp-n{margin-left:auto; font-size:.6rem; letter-spacing:.14em; color:var(--faint)}
   .grp-desc{margin:-6px 4px 14px; font-size:.74rem; line-height:1.7; color:var(--muted)}
   .grp-body{border-left:1px solid var(--line); margin-left:5px; padding-left:15px}
-  .grp-solo .grp-body{border-left:0; margin-left:0; padding-left:0}
   .grp-body .row{border-bottom:0}
   .grp-body .row + .row{border-top:1px solid var(--line)}
   .row{display:grid; grid-template-columns:auto 1fr; align-items:baseline; gap:16px;
@@ -202,7 +208,7 @@
     .drawer{width:100%; border-left:0; padding-left:20px; padding-right:20px}
   }
   @media (prefers-reduced-motion: reduce){
-    .hero,.drawer,.scrim,.grp-wrap,.grp-btn::after{transition:none}
+    .hero,.drawer,.scrim,.grp-wrap,.grp-btn::after,.grp-link::after{transition:none}
   }
 </style>
 </head>
@@ -452,16 +458,13 @@
         </div>
       </section>
       <section class="grp grp-solo">
-        <div class="grp-body">
-          <a class="row" href="about/">
-            <span class="idx">20</span>
-            <span class="body">
-              <span class="cat">ABOUT</span>
-              <span class="ttl">m-note について</span>
-              <span class="desc">頭の中を可視化し、得た知識と感じた感情を残していく。このサイトの目的と見方。</span>
-            </span>
+        <h2 class="grp-h">
+          <a class="grp-link" href="about/">
+            <span class="grp-ja">m-note について</span>
+            <span class="grp-en">ABOUT</span>
           </a>
-        </div>
+        </h2>
+        <p class="grp-desc">頭の中を可視化し、得た知識と感じた感情を残していく。このサイトの目的と見方。</p>
       </section>
     </nav>
 
