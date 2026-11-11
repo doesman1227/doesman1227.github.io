@@ -193,11 +193,15 @@
   .row:hover::after{transform:translateX(3px)}
   .idx{font-family:"Noto Serif JP",serif; font-weight:500; font-size:.72rem; color:var(--faint);
     letter-spacing:.05em}
-  .body{display:flex; flex-wrap:wrap; align-items:baseline; gap:11px}
-  .ttl{order:1; font-family:"Noto Serif JP",serif; font-weight:600; font-size:.92rem;
-    color:var(--ink); letter-spacing:.1em; line-height:1.35}
-  .cat{order:2; font-size:.56rem; font-weight:700; letter-spacing:.22em; color:var(--faint)}
-  .desc{order:3; flex-basis:100%; margin-top:6px; font-size:.74rem; color:var(--muted);
+  /* 名前と英字は必ず一行。入らないときは英字のほうを詰める(折り返すと行だけ背が伸びる)。
+     DOM は 英字→名前 の順だが、並べ替えはここで行う。 */
+  .body{display:grid; grid-template-columns:auto minmax(0,1fr); align-items:baseline;
+    column-gap:11px}
+  .ttl{grid-row:1; grid-column:1; font-family:"Noto Serif JP",serif; font-weight:600;
+    font-size:.92rem; color:var(--ink); letter-spacing:.1em; line-height:1.7}
+  .cat{grid-row:1; grid-column:2; font-size:.56rem; font-weight:700; letter-spacing:.22em;
+    color:var(--faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .desc{grid-row:2; grid-column:1 / -1; margin-top:6px; font-size:.74rem; color:var(--muted);
     line-height:1.7; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; line-clamp:2;
     overflow:hidden; min-height:3.4em}
 
