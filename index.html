@@ -175,7 +175,9 @@
     letter-spacing:.1em}
   .grp-en{font-size:.56rem; font-weight:700; letter-spacing:.22em; color:var(--faint)}
   .grp-n{margin-left:auto; font-size:.6rem; letter-spacing:.14em; color:var(--faint)}
-  .grp-desc{margin:-6px 4px 14px; font-size:.74rem; line-height:1.7; color:var(--muted)}
+  .grp-desc{margin:-6px 4px 14px; font-size:.74rem; line-height:1.7; color:var(--muted);
+    display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; line-clamp:2;
+    overflow:hidden; min-height:3.4em}
   .grp-body{border-left:1px solid var(--line); margin-left:5px; padding-left:15px}
   .grp-body .row{border-bottom:0}
   .grp-body .row + .row{border-top:1px solid var(--line)}
@@ -196,7 +198,8 @@
     color:var(--ink); letter-spacing:.1em; line-height:1.35}
   .cat{order:2; font-size:.56rem; font-weight:700; letter-spacing:.22em; color:var(--faint)}
   .desc{order:3; flex-basis:100%; margin-top:6px; font-size:.74rem; color:var(--muted);
-    line-height:1.7}
+    line-height:1.7; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; line-clamp:2;
+    overflow:hidden; min-height:3.4em}
 
   .drawer footer{margin-top:auto; padding-top:30px; color:var(--muted)}
   .foot-line{display:flex; justify-content:space-between; align-items:center; gap:14px;
